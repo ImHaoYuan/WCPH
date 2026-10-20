@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>校园委托系统 E-R 图（Crow's Foot 新画法）</title>
+<style>
+  body { margin:0; padding:24px 32px; background:#fff;
+         font-family:"Microsoft YaHei","Segoe UI",sans-serif; color:#1F3864; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  p.sub { color:#5a6478; font-size:13px; margin:0 0 18px; }
+  .tip { background:#F8FAFD; border:1px solid #C8D2E1; border-left:4px solid #2F5597;
+         padding:10px 14px; font-size:13px; color:#40495A; margin-bottom:20px; border-radius:3px; }
+  .wrap { border:1px solid #DCE3EE; border-radius:6px; padding:18px; overflow:auto; }
+  .err { color:#B23A3A; font-size:14px; }
+  code { background:#F0F3F8; padding:1px 5px; border-radius:3px; font-size:12px; }
+</style>
+</head>
+<body>
+  <h1>校园委托系统 E-R 图（Crow's Foot / IE 新画法）</h1>
+  <p class="sub">9 个实体 · PK/FK 标注 · 鸦爪基数符号 · 多对多拆中间表</p>
+
+  <div class="tip">
+    <b>怎么用：</b>本页由浏览器实时渲染，<b>需要联网</b>（从 CDN 加载 Mermaid 库）。<br>
+    改图：直接编辑本文件里的 <code>erDiagram</code> 段落，保存后刷新页面即可。<br>
+    导出 PNG/SVG：把 Mermaid 源码粘到 <a href="https://mermaid.live" target="_blank">mermaid.live</a>，右上角 Actions → PNG / SVG。
+  </div>
+
+  <div class="wrap">
+<pre class="mermaid">
+erDiagram
+    USER   ||--o| WALLET      : "拥有"
+    USER   ||--o{ TASK        : "发布"
+    CATEGORY ||--o{ TASK      : "所属分类"
+    TASK   ||--|| ORDERS      : "成交"
+    TASK   ||--o{ APPLICATION : "收到申请"
+    ORDERS ||--o| REVIEW      : "产生评价"
+    ORDERS ||--o{ MESSAGE     : "订单沟通"
+    WALLET ||--o{ TRANSACTION : "产生流水"
+
+    USER {
+        bigint   user_id       PK "用户ID"
+        varchar  username      UK "登录名"
+        char     password_hash    "密码哈希"
+        varchar  student_no    UK "学号"
+        varchar  phone         UK "手机号"
+        varchar  real_name        "真实姓名"
+        tinyint  verify_status    "认证状态"
+        int      credit_score     "信用分"
+        tinyint  status           "账号状态"
+        datetime created_at       "注册时间"
+    }
+    CATEGORY {
+        bigint  category_id PK "分类ID"
+        varchar name        UK "分类名称"
+        varchar description    "分类说明"
+        int     sort_no        "排序号"
+        tinyint enabled        "是否启用"
+    }
+    TASK {
+        bigint   task_id      PK "委托ID"
+        bigint   publisher_id FK "发布者ID"
+        bigint   category_id  FK "分类ID"
+        varchar  title           "委托标题"
+        text     description     "详细描述"
+        decimal  reward          "悬赏金额"
+        datetime deadline        "期望完成时间"
+        varchar  place           "地点"
+        tinyint  urgency         "紧急程度"
+        tinyint  status          "委托状态"
+        int      view_count      "浏览量"
+        datetime created_at      "发布时间"
+    }
+    APPLICATION {
+        bigint   application_id PK "申请ID"
+        bigint   task_id        FK "委托ID"
+        bigint   applicant_id   FK "申请人ID"
+        varchar  message           "申请留言"
+        tinyint  status            "申请状态"
+        datetime applied_at        "申请时间"
+        datetime handled_at        "处理时间"
+    }
+    ORDERS {
+        bigint   order_id     PK "订单ID"
+        varchar  order_no     UK "订单编号"
+        bigint   task_id      FK "委托ID(唯一)"
+        bigint   publisher_id FK "委托方ID"
+        bigint   taker_id     FK "接单方ID"
+        decimal  amount          "成交金额"
+        tinyint  status          "订单状态"
+        datetime accepted_at     "接单时间"
+        datetime finished_at     "完成时间"
+    }
+    REVIEW {
+        bigint   review_id   PK "评价ID"
+        bigint   order_id    FK "订单ID(唯一)"
+        bigint   reviewer_id FK "评价人ID"
+        bigint   reviewee_id FK "被评价人ID"
+        tinyint  score          "评分1~5"
+        varchar  content        "评价内容"
+        datetime created_at     "评价时间"
+    }
+    WALLET {
+        bigint   wallet_id  PK "钱包ID"
+        bigint   user_id    FK "用户ID(唯一)"
+        decimal  balance       "可用余额"
+        decimal  frozen         "冻结金额"
+        datetime updated_at     "更新时间"
+    }
+    TRANSACTION {
+        bigint   txn_id        PK "流水ID"
+        bigint   wallet_id     FK "钱包ID"
+        bigint   order_id      FK "订单ID"
+        tinyint  type             "流水类型"
+        decimal  amount           "变动金额"
+        decimal  balance_after    "变动后余额"
+        datetime created_at       "发生时间"
+    }
+    MESSAGE {
+        bigint   message_id  PK "消息ID"
+        bigint   order_id    FK "订单ID"
+        bigint   sender_id   FK "发送者ID"
+        bigint   receiver_id FK "接收者ID"
+        varchar  content        "消息内容"
+        tinyint  is_read        "是否已读"
+        datetime sent_at        "发送时间"
+    }
+</pre>
+  </div>
+
+  <p class="sub" style="margin-top:16px">
+    基数记号：<code>||</code> 一（强制）　<code>|o</code> 零或一　<code>}|</code> 一或多　<code>}o</code> 零或多
+  </p>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose',
+                           er: { useMaxWidth: false, diagramPadding: 24 } });
+    } else {
+      document.querySelector('.wrap').innerHTML =
+        '<div class="err">未能加载 Mermaid（可能没有联网）。<br>' +
+        '请改用 11_ER图源码.md 里的源码，粘到 https://mermaid.live 渲染。</div>';
+    }
+  </script>
+</body>
+</html>
