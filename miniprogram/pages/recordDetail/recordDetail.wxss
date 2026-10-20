@@ -1,0 +1,103 @@
+.page {
+  min-height: 100vh;
+  padding: 24rpx 24rpx calc(40rpx + env(safe-area-inset-bottom));
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  padding: 32rpx 28rpx;
+}
+
+.h-avatar {
+  width: 92rpx;
+  height: 92rpx;
+  border-radius: 24rpx;
+  background: var(--primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 46rpx;
+  flex: 0 0 92rpx;
+}
+
+.h-info {
+  flex: 1;
+  margin-left: 24rpx;
+  min-width: 0;
+}
+
+.h-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.h-desc {
+  font-size: 24rpx;
+  color: var(--text-sub);
+  margin-top: 8rpx;
+}
+
+.dialog {
+  margin-top: 24rpx;
+  padding: 12rpx 28rpx;
+}
+
+.line {
+  padding: 24rpx 0;
+  border-bottom: 2rpx solid #F0F1F5;
+}
+
+.line:last-child {
+  border-bottom: none;
+}
+
+.role {
+  display: inline-block;
+  font-size: 22rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+  margin-bottom: 12rpx;
+}
+
+.line.ai .role {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.line.user .role {
+  background: #EAF7EF;
+  color: #2BB673;
+}
+
+.content {
+  display: block;
+  font-size: 28rpx;
+  color: var(--text-main);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.notice {
+  text-align: center;
+  color: var(--text-light);
+  font-size: 22rpx;
+  margin: 32rpx 24rpx;
+  line-height: 1.6;
+}
+
+.btn-danger {
+  margin: 24rpx 8rpx 0;
+  background: #fff;
+  color: var(--danger);
+  border-radius: 999rpx;
+  font-size: 30rpx;
+  line-height: 2.8;
+  border: 2rpx solid #FFD9DA;
+}
+
+.btn-danger::after {
+  border: none;
+}

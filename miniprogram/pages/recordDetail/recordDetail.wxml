@@ -1,0 +1,21 @@
+<view class="page">
+  <view class="head card">
+    <view class="h-avatar">{{record.petAvatar || '💬'}}</view>
+    <view class="h-info">
+      <view class="h-title">{{record.title}}</view>
+      <view class="h-desc">{{record.petName ? record.petName + ' · ' : ''}}{{timeText}}</view>
+    </view>
+  </view>
+
+  <view class="dialog card">
+    <view wx:for="{{record.messages}}" wx:key="_k" class="line {{item.role}}">
+      <text class="role">{{item.role === 'ai' ? 'AI助手' : '我'}}</text>
+      <text class="content" user-select>{{item.content}}</text>
+    </view>
+    <view wx:if="{{!record.messages.length}}" class="empty">该记录暂无对话内容</view>
+  </view>
+
+  <view class="notice">以上内容由AI生成，仅供初步参考，不能替代执业兽医诊断。</view>
+
+  <button class="btn-danger" bindtap="onDelete">删除该记录</button>
+</view>

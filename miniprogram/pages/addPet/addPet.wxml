@@ -1,0 +1,107 @@
+<view class="page">
+  <!-- 头像 -->
+  <view class="avatar-section card">
+    <view class="avatar-preview" bindtap="chooseFromAlbum">
+      <image wx:if="{{avatarIsImage}}" class="avatar-img" src="{{avatar}}" mode="aspectFill"></image>
+      <text wx:else class="avatar-emoji">{{avatar || '🐾'}}</text>
+      <view class="avatar-edit">📷</view>
+    </view>
+    <view class="avatar-tip">点击上传图片，或从下方选择卡通头像</view>
+    <scroll-view class="avatar-list" scroll-x enhanced show-scrollbar="{{false}}">
+      <view
+        wx:for="{{defaultAvatars}}"
+        wx:key="*this"
+        class="avatar-option {{avatar === item ? 'active' : ''}}"
+        data-avatar="{{item}}"
+        bindtap="pickDefaultAvatar"
+      >{{item}}</view>
+    </scroll-view>
+  </view>
+
+  <!-- 表单 -->
+  <view class="form card">
+    <view class="row">
+      <text class="row-label">宠物名字</text>
+      <input class="row-input" placeholder="请输入宠物名字" placeholder-class="ph" value="{{name}}" bindinput="onName" />
+    </view>
+
+    <picker class="row" mode="selector" range="{{categories}}" value="{{catIndex}}" bindchange="onCategory">
+      <view class="row-inner">
+        <text class="row-label">宠物分类</text>
+        <view class="row-value {{category ? '' : 'ph'}}">
+          <text>{{category || '请选择分类'}}</text>
+          <text class="arrow">›</text>
+        </view>
+      </view>
+    </picker>
+
+    <picker class="row" mode="selector" range="{{breeds}}" value="{{breedIndex}}" disabled="{{!category}}" bindchange="onBreed">
+      <view class="row-inner">
+        <text class="row-label">宠物品种</text>
+        <view class="row-value {{breed ? '' : 'ph'}}">
+          <text>{{breed || (category ? '请选择品种' : '请先选择分类')}}</text>
+          <text class="arrow">›</text>
+        </view>
+      </view>
+    </picker>
+
+    <view class="row">
+      <text class="row-label">性别</text>
+      <view class="chips">
+        <view
+          wx:for="{{genderOptions}}"
+          wx:key="*this"
+          class="chip {{gender === item ? 'active' : ''}}"
+          data-val="{{item}}"
+          bindtap="onGender"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <picker class="row" mode="date" value="{{birthDate}}" end="{{today}}" bindchange="onBirth">
+      <view class="row-inner">
+        <text class="row-label">出生日期</text>
+        <view class="row-value {{birthDate ? '' : 'ph'}}">
+          <text>{{birthDate || '请选择出生日期'}}</text>
+          <text class="arrow">›</text>
+        </view>
+      </view>
+    </picker>
+
+    <view class="row">
+      <text class="row-label">体重(kg)</text>
+      <input class="row-input" type="digit" placeholder="请输入体重" placeholder-class="ph" value="{{weight}}" bindinput="onWeight" />
+    </view>
+
+    <view class="row column">
+      <text class="row-label">绝育状态</text>
+      <view class="chips">
+        <view
+          wx:for="{{neuterOptions}}"
+          wx:key="*this"
+          class="chip {{neutered === item ? 'active' : ''}}"
+          data-val="{{item}}"
+          bindtap="onNeutered"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <view class="row column last">
+      <text class="row-label">驱虫状态</text>
+      <view class="chips">
+        <view
+          wx:for="{{dewormOptions}}"
+          wx:key="*this"
+          class="chip {{dewormed === item ? 'active' : ''}}"
+          data-val="{{item}}"
+          bindtap="onDewormed"
+        >{{item}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="actions">
+    <button class="btn-primary" loading="{{saving}}" bindtap="onSave">保存</button>
+    <button wx:if="{{id}}" class="btn-danger" bindtap="onDelete">删除该宠物</button>
+  </view>
+</view>

@@ -1,0 +1,43 @@
+<view class="page">
+  <view style="background:red;height:120rpx;color:white;font-size:40rpx;">RENDER-TEST</view>
+  <scroll-view class="pet-bar" scroll-x>
+    <view class="pet-item" wx:for="{{pets}}" wx:key="_id" data-id="{{item._id}}" bindtap="onPetTap">
+      <view class="avatar">
+        <image wx:if="{{item.avatarIsImage}}" class="avatar-img" src="{{item.avatar}}" mode="aspectFill"></image>
+        <text wx:else class="avatar-emoji">{{item.avatarText}}</text>
+      </view>
+      <text class="pet-name ellipsis">{{item.name}}</text>
+    </view>
+
+    <view class="pet-item" bindtap="onAddPet">
+      <view class="avatar add-avatar">
+        <text class="plus">+</text>
+      </view>
+      <text class="pet-name">添加</text>
+    </view>
+  </scroll-view>
+
+  <view class="intro">
+    <view class="hero card">
+      <view class="hero-badge">AI · 宠物健康助手</view>
+      <view class="hero-title">智能宠医，专业守护</view>
+      <view class="hero-sub">您好！我是您的AI宠物健康助手。我基于前沿宠物医学知识为您提供初步健康评估（非专业兽医诊断）。</view>
+    </view>
+
+    <view class="tip-card card" wx:for="{{tips}}" wx:key="title">
+      <view class="tip-icon">{{item.icon}}</view>
+      <view class="tip-body">
+        <view class="tip-title">{{item.title}}</view>
+        <view class="tip-desc">{{item.desc}}</view>
+      </view>
+    </view>
+
+    <view class="disclaimer">在线咨询不能替代执业兽医的现场诊断，紧急情况请立即就医。</view>
+  </view>
+
+  <view class="footer-space"></view>
+
+  <view class="fab">
+    <button class="btn-primary fab-btn" bindtap="onStart">马上问诊</button>
+  </view>
+</view>

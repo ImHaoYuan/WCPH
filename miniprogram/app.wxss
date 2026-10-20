@@ -1,0 +1,76 @@
+/* 全局样式与设计变量 */
+page {
+  --primary: #5B7CFA;
+  --primary-light: #8AA0FF;
+  --primary-soft: #EEF2FF;
+  --text-main: #1F2430;
+  --text-sub: #6B7280;
+  --text-light: #9AA0AC;
+  --bg: #F5F6FA;
+  --card: #FFFFFF;
+  --danger: #FF5A5F;
+  --warn: #FF9F43;
+  --radius: 24rpx;
+  --shadow: 0 8rpx 30rpx rgba(91, 124, 250, 0.08);
+
+  background-color: var(--bg);
+  color: var(--text-main);
+  font-size: 28rpx;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif;
+  line-height: 1.6;
+}
+
+view, text, scroll-view, navigator, button, input, textarea, image {
+  box-sizing: border-box;
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  color: #fff;
+  border-radius: 999rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  border: none;
+  line-height: 2.6;
+}
+
+.btn-primary::after {
+  border: none;
+}
+
+.btn-plain {
+  background: #fff;
+  color: var(--primary);
+  border: 2rpx solid var(--primary);
+  border-radius: 999rpx;
+  font-size: 30rpx;
+  line-height: 2.4;
+}
+
+.btn-plain::after {
+  border: none;
+}
+
+.text-sub { color: var(--text-sub); }
+.text-light { color: var(--text-light); }
+.text-primary { color: var(--primary); }
+.text-danger { color: var(--danger); }
+
+.ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.empty {
+  text-align: center;
+  color: var(--text-light);
+  font-size: 26rpx;
+  padding: 80rpx 0;
+}

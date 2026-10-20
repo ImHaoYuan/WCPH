@@ -1,0 +1,40 @@
+{
+  "pages": [
+    "pages/consult/consult",
+    "pages/mine/mine",
+    "pages/login/login",
+    "pages/addPet/addPet",
+    "pages/chat/chat",
+    "pages/recordDetail/recordDetail"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#5B7CFA",
+    "navigationBarTitleText": "AI宠物问诊",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#F5F6FA"
+  },
+  "tabBar": {
+    "color": "#9AA0AC",
+    "selectedColor": "#5B7CFA",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/consult/consult",
+        "text": "AI问诊",
+        "iconPath": "images/tabbar/consult.png",
+        "selectedIconPath": "images/tabbar/consult-active.png"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的",
+        "iconPath": "images/tabbar/mine.png",
+        "selectedIconPath": "images/tabbar/mine-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

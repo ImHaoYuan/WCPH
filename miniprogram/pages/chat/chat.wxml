@@ -1,0 +1,55 @@
+<view class="chat">
+  <!-- 顶部宠物选择 -->
+  <view class="topbar">
+    <picker mode="selector" range="{{petNames}}" value="{{petIndex}}" bindchange="onPickPet" disabled="{{!pets.length}}">
+      <view class="pet-select">
+        <view class="ps-avatar">
+          <image wx:if="{{currentPet.avatarIsImage}}" class="ps-img" src="{{currentPet.avatar}}" mode="aspectFill"></image>
+          <text wx:else class="ps-emoji">{{currentPet.avatar || '🐾'}}</text>
+        </view>
+        <text class="ps-name">{{currentPet.name || (pets.length ? '选择宠物' : '暂无宠物')}}</text>
+        <text class="ps-arrow">▾</text>
+      </view>
+    </picker>
+    <text wx:if="{{!pets.length}}" class="add-link" bindtap="onAddPet">去添加</text>
+    <text wx:elif="{{savedId}}" class="saved-tag">已存记录</text>
+  </view>
+
+  <!-- 消息列表 -->
+  <scroll-view class="msg-list" scroll-y scroll-into-view="{{scrollTo}}" scroll-with-animation enhanced show-scrollbar="{{false}}">
+    <view wx:for="{{messages}}" wx:key="_k" id="msg-{{item._k}}" class="msg {{item.role}}">
+      <view class="avatar-dot">{{item.role === 'ai' ? '🤖' : '🙂'}}</view>
+      <view class="bubble-wrap">
+        <text class="bubble" user-select>{{item.content}}</text>
+        <text class="time">{{item.timeText}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{sending}}" class="msg ai">
+      <view class="avatar-dot">🤖</view>
+      <view class="bubble-wrap">
+        <view class="bubble typing">
+          <text class="dot">●</text><text class="dot">●</text><text class="dot">●</text>
+        </view>
+      </view>
+    </view>
+
+    <view id="bottom-anchor" class="bottom-anchor"></view>
+  </scroll-view>
+
+  <!-- 输入栏 -->
+  <view class="inputbar">
+    <input
+      class="msg-input"
+      value="{{inputValue}}"
+      bindinput="onInput"
+      bindconfirm="send"
+      confirm-type="send"
+      placeholder="请详细描述宠物的症状…"
+      placeholder-class="ph"
+      adjust-position="{{true}}"
+      cursor-spacing="20"
+    />
+    <view class="send-btn {{inputValue ? 'active' : ''}}" bindtap="send">发送</view>
+  </view>
+</view>

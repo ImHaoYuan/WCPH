@@ -1,0 +1,63 @@
+<view class="page">
+  <!-- 顶部用户区 -->
+  <view class="header">
+    <view class="user" bindtap="onUserTap">
+      <view class="u-avatar {{logged ? '' : 'guest'}}">
+        <image wx:if="{{logged && user.avatarUrl}}" class="u-img" src="{{user.avatarUrl}}" mode="aspectFill"></image>
+        <text wx:else class="u-emoji">{{logged ? '🙂' : '👤'}}</text>
+      </view>
+      <view class="u-info">
+        <view class="u-name">{{logged ? user.nickname : '请先登录'}}</view>
+        <view class="u-desc">{{logged ? (user.phone || '') : '登录后查看宠物与问诊记录'}}</view>
+      </view>
+      <text class="u-arrow">›</text>
+    </view>
+  </view>
+
+  <!-- 我的宠物 -->
+  <view class="section">
+    <view class="sec-head">
+      <text class="sec-title">我的宠物</text>
+      <text wx:if="{{logged}}" class="sec-more" bindtap="onAddPet">＋ 添加</text>
+    </view>
+
+    <view wx:if="{{!logged}}" class="empty card">登录后查看宠物信息</view>
+    <block wx:elif="{{pets.length}}">
+      <view class="pet-card card" wx:for="{{pets}}" wx:key="_id" data-id="{{item._id}}" bindtap="onPetTap">
+        <view class="p-avatar">
+          <image wx:if="{{item.avatarIsImage}}" class="p-img" src="{{item.avatar}}" mode="aspectFill"></image>
+          <text wx:else class="p-emoji">{{item.avatar || '🐾'}}</text>
+        </view>
+        <view class="p-info">
+          <view class="p-name">{{item.name}}</view>
+          <view class="p-desc">{{item.breed}}{{item.ageText ? ' · ' + item.ageText : ''}}{{item.weight ? ' · ' + item.weight + 'kg' : ''}}</view>
+        </view>
+        <text class="p-arrow">›</text>
+      </view>
+    </block>
+    <view wx:else class="empty card">还没有添加宠物，快去添加吧～</view>
+  </view>
+
+  <!-- 问诊记录 -->
+  <view class="section">
+    <view class="sec-head">
+      <text class="sec-title">问诊记录</text>
+    </view>
+
+    <view wx:if="{{!logged}}" class="empty card">登录后查看问诊记录</view>
+    <block wx:elif="{{records.length}}">
+      <view class="rec-card card" wx:for="{{records}}" wx:key="_id" data-id="{{item._id}}" bindtap="onRecordTap">
+        <view class="r-avatar">{{item.petAvatar && !item.avatarIsImage ? item.petAvatar : '💬'}}</view>
+        <view class="r-info">
+          <view class="r-title ellipsis">{{item.title}}</view>
+          <view class="r-desc">{{item.petName ? item.petName + ' · ' : ''}}{{item.timeText}}</view>
+        </view>
+        <text class="r-arrow">›</text>
+      </view>
+    </block>
+    <view wx:else class="empty card">暂无问诊记录</view>
+  </view>
+
+  <button wx:if="{{logged}}" class="logout" bindtap="onLogout">退出登录</button>
+  <view class="bottom-space"></view>
+</view>
