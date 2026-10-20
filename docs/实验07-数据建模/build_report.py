@@ -11,7 +11,8 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
-OUT = r"C:\Users\林炯汉\Documents\deepseek-harness\default-workspace\campus-commission"
+_DIR = os.path.dirname(os.path.abspath(__file__))
+OUT = _DIR
 DOCX = os.path.join(OUT, "09_实验07_数据建模_实验报告.docx")
 
 # ============================================================ 数据

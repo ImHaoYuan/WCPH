@@ -2,11 +2,13 @@
 校园委托系统 —— 数据字典生成器
 输出: 02_数据字典.xlsx  (每个表一个工作表 + 关系总览)
 """
+import os
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
-OUT = r"C:\Users\林炯汉\Documents\deepseek-harness\default-workspace\campus-commission\02_数据字典.xlsx"
+_DIR = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.join(_DIR, "02_数据字典.xlsx")
 
 # ---------------------------------------------------------------- 元数据
 # (字段名, 中文名, 数据类型, 长度/精度, 约束, 业务含义)

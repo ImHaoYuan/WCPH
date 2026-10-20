@@ -5,7 +5,8 @@
 import os, math
 from PIL import Image, ImageDraw, ImageFont
 
-OUT = r"C:\Users\林炯汉\Documents\deepseek-harness\default-workspace\campus-commission"
+_DIR = os.path.dirname(os.path.abspath(__file__))
+OUT = _DIR
 
 def load_font(size):
     for c in (r"C:\Windows\Fonts\msyh.ttc", r"C:\Windows\Fonts\msyhbd.ttc",
