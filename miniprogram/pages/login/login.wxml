@@ -1,7 +1,7 @@
 <view class="login">
   <view class="brand">
     <view class="logo">🐾</view>
-    <view class="app-name">AI宠物问诊</view>
+    <view class="app-name">AI宠物助手</view>
     <view class="slogan">智能守护每一位毛孩子</view>
   </view>
 
