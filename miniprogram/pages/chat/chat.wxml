@@ -1,4 +1,13 @@
 <view class="chat">
+  <!-- 自定义导航栏（拦截返回：未发送附件询问保存） -->
+  <view class="navbar" style="padding-top: {{statusBarHeight}}px;">
+    <view class="nav-inner">
+      <view class="nav-back" bindtap="onBack">‹</view>
+      <text class="nav-title">AI问诊</text>
+      <view class="nav-holder"></view>
+    </view>
+  </view>
+
   <!-- 顶部宠物信息 -->
   <view class="topbar">
     <view wx:if="{{currentPet._id}}" class="pet-slider">
@@ -48,7 +57,36 @@
     <view wx:for="{{messages}}" wx:key="_k" id="msg-{{item._k}}" class="msg {{item.role}}">
       <view class="avatar-dot">{{item.role === 'ai' ? '🤖' : '🙂'}}</view>
       <view class="bubble-wrap">
-        <text class="bubble" user-select>{{item.content}}</text>
+        <!-- 紧急程度分级预警横幅 -->
+        <view wx:if="{{item.level}}" class="urgency {{item.level}}">
+          <view class="urgency-head">
+            <text class="urgency-icon">{{item.level === 'red' ? '🚨' : item.level === 'yellow' ? '⚠️' : '🌿'}}</text>
+            <text class="urgency-label">{{item.level === 'red' ? '紧急 · 建议立刻送医' : item.level === 'yellow' ? '关注 · 建议观察' : '轻症 · 居家护理'}}</text>
+          </view>
+          <view wx:if="{{item.level === 'red'}}" class="urgency-call" bindtap="onCallHospital">
+            <text class="call-icon">📞</text>
+            <text>一键拨打附近宠物医院电话</text>
+          </view>
+        </view>
+
+        <!-- 用户消息：图片/视频 -->
+        <view wx:if="{{item.images.length}}" class="media-grid">
+          <image
+            wx:for="{{item.images}}"
+            wx:for-item="img"
+            wx:key="*this"
+            class="media-img"
+            src="{{img}}"
+            mode="aspectFill"
+            data-src="{{img}}"
+            data-urls="{{item.images}}"
+            bindtap="onPreviewImage"
+          />
+        </view>
+        <video wx:if="{{item.video}}" class="media-video" src="{{item.video}}" controls object-fit="contain"></video>
+
+        <text wx:if="{{item.content}}" class="bubble" user-select>{{item.content}}</text>
+
         <text class="time">{{item.timeText}}</text>
       </view>
     </view>
@@ -65,6 +103,20 @@
     <view id="bottom-anchor" class="bottom-anchor"></view>
   </scroll-view>
 
+  <!-- 待发送附件预览 -->
+  <view wx:if="{{pendingImages.length || pendingVideo}}" class="attach-bar">
+    <view wx:for="{{pendingImages}}" wx:key="*this" class="attach-item">
+      <image class="attach-img" src="{{item}}" mode="aspectFill"></image>
+      <view class="attach-del" data-i="{{index}}" catchtap="onRemoveImage">✕</view>
+    </view>
+    <view wx:if="{{pendingVideo}}" class="attach-item video-chip">
+      <text class="video-chip-icon">🎬</text>
+      <text class="video-chip-text">视频</text>
+      <view class="attach-del" catchtap="onRemoveVideo">✕</view>
+    </view>
+    <view class="attach-add" bindtap="onAddMore">＋</view>
+  </view>
+
   <!-- 输入栏 -->
   <view class="inputbar">
     <input
@@ -73,7 +125,7 @@
       bindinput="onInput"
       bindconfirm="send"
       confirm-type="send"
-      placeholder="请详细描述宠物的症状…"
+      placeholder="描述症状，发送即可开始问诊…"
       placeholder-class="ph"
       adjust-position="{{true}}"
       cursor-spacing="20"

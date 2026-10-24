@@ -1,4 +1,5 @@
 {
   "navigationBarTitleText": "AI问诊",
+  "navigationStyle": "custom",
   "usingComponents": {}
 }

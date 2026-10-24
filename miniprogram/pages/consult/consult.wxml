@@ -7,6 +7,10 @@
           <image wx:if="{{item.avatarIsImage}}" class="avatar-img" src="{{item.avatar}}" mode="aspectFill"></image>
           <text wx:else class="avatar-emoji">{{item.avatarText}}</text>
         </view>
+        <!-- 删除模式徽标：红色圆 + 白色横线 -->
+        <view wx:if="{{deleteMode}}" class="del-badge">
+          <view class="del-badge-line"></view>
+        </view>
         <text class="pet-name ellipsis">{{item.name}}</text>
       </view>
 
@@ -16,7 +20,36 @@
         </view>
         <text class="pet-name">添加</text>
       </view>
+
+      <view class="pet-item" bindtap="onDeletePet">
+        <view class="avatar add-avatar {{deleteMode ? 'del-avatar' : ''}}">
+          <text class="plus {{deleteMode ? 'del-plus' : ''}}">{{deleteMode ? '✓' : '−'}}</text>
+        </view>
+        <text class="pet-name">{{deleteMode ? '完成' : '删除'}}</text>
+      </view>
     </scroll-view>
+  </view>
+
+  <view class="consult-actions">
+    <button class="btn-media" bindtap="onMediaConsult">
+      <view class="btn-emoji">📷</view>
+      <view class="btn-label">拍照/视频</view>
+      <view class="btn-label">上传问诊</view>
+    </button>
+    <button class="btn-text" bindtap="onTextConsult">
+      <view class="btn-emoji">💬</view>
+      <view class="btn-label">文字问诊</view>
+    </button>
+  </view>
+
+  <view class="firstaid-entry" bindtap="onFirstAid">
+    <view class="fa-icon">⛑</view>
+    <view class="fa-body">
+      <view class="fa-title">宠物急救指南</view>
+      <view class="fa-sub">海姆立克 · 中毒急救 · 外伤包扎</view>
+    </view>
+    <text class="fa-badge">离线可用</text>
+    <text class="fa-arrow">›</text>
   </view>
 
   <view class="intro">
@@ -35,11 +68,5 @@
     </view>
 
     <view class="disclaimer">在线咨询不能替代执业兽医的现场诊断，紧急情况请立即就医。</view>
-  </view>
-
-  <view class="footer-space"></view>
-
-  <view class="fab">
-    <button class="btn-primary fab-btn" bindtap="onStart">马上问诊</button>
   </view>
 </view>

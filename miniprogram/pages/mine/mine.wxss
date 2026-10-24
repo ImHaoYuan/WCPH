@@ -241,10 +241,26 @@
   min-width: 0;
 }
 
+.r-title-line {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+}
+
 .r-title {
   font-size: 30rpx;
   font-weight: 600;
   color: var(--text-main);
+  flex: 0 0 auto;
+  max-width: 60%;
+}
+
+.r-question {
+  flex: 1;
+  min-width: 0;
+  margin-left: 14rpx;
+  font-size: 22rpx;
+  color: var(--text-light);
 }
 
 .r-desc {

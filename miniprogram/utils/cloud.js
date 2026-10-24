@@ -28,6 +28,12 @@ module.exports = {
   call,
   toastError,
 
+  // ===== 云存储 =====
+  uploadFile: (tempFilePath, cloudPath) =>
+    wx.cloud
+      .uploadFile({ cloudPath, filePath: tempFilePath })
+      .then(res => (res && res.fileID) || tempFilePath),
+
   // ===== 登录 =====
   smsLogin: (phone, code) => call('login', { action: 'smsLogin', phone, code }),
   phoneLogin: cloudID => call('login', { action: 'phoneLogin', cloudID }),
@@ -46,5 +52,11 @@ module.exports = {
   getRecord: id => call('record', { action: 'get', id }),
   addRecord: record => call('record', { action: 'add', record }),
   updateRecord: (id, record) => call('record', { action: 'update', id, record }),
-  deleteRecord: id => call('record', { action: 'remove', id })
+  deleteRecord: id => call('record', { action: 'remove', id }),
+
+  // ===== 问诊广场 =====
+  squareList: () => call('square', { action: 'list' }),
+  squareLike: id => call('square', { action: 'like', id }),
+  squareComment: (id, content) => call('square', { action: 'comment', id, content }),
+  squarePublish: post => call('square', { action: 'publish', post })
 }

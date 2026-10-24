@@ -9,13 +9,40 @@
 
   <view class="dialog card">
     <view wx:for="{{record.messages}}" wx:key="_k" class="line {{item.role}}">
-      <text class="role">{{item.role === 'ai' ? 'AI助手' : '我'}}</text>
-      <text class="content" user-select>{{item.content}}</text>
+      <view class="line-avatar">
+        <image wx:if="{{item.role === 'user' && userAvatar}}" class="avatar-img" src="{{userAvatar}}" mode="aspectFill"></image>
+        <text wx:else class="avatar-emoji">{{item.role === 'ai' ? '🤖' : '🙂'}}</text>
+      </view>
+      <view class="line-body">
+        <view class="line-head">
+          <text class="line-name">{{item.role === 'ai' ? 'AI助手' : '我'}}</text>
+          <text wx:if="{{item.level}}" class="urgency-badge {{item.level}}">{{item.level === 'red' ? '🚨 紧急 · 立刻送医' : item.level === 'yellow' ? '⚠️ 建议观察' : '🌿 居家护理'}}</text>
+        </view>
+        <text wx:if="{{item.content && item.content !== '[图片]' && item.content !== '[视频]'}}" class="content" user-select>{{item.content}}</text>
+        <!-- 用户发送的图片 -->
+        <view wx:if="{{item.images && item.images.length}}" class="msg-imgs">
+          <image
+            wx:for="{{item.images}}"
+            wx:for-item="img"
+            wx:key="*this"
+            class="msg-img"
+            src="{{img}}"
+            mode="aspectFill"
+            data-urls="{{item.images}}"
+            data-cur="{{img}}"
+            bindtap="onPreviewImage"
+          ></image>
+        </view>
+        <!-- 用户发送的视频 -->
+        <video wx:if="{{item.video}}" class="msg-video" src="{{item.video}}" controls object-fit="contain"></video>
+      </view>
     </view>
     <view wx:if="{{!record.messages.length}}" class="empty">该记录暂无对话内容</view>
   </view>
 
   <view class="notice">以上内容由AI生成，仅供初步参考，不能替代执业兽医诊断。</view>
+
+  <button class="btn-primary consult-btn" bindtap="onContinueConsult">继续 AI 问诊</button>
 
   <button class="btn-danger" bindtap="onDelete">删除该记录</button>
 </view>

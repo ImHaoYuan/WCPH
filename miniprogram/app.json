@@ -1,11 +1,13 @@
 {
   "pages": [
     "pages/consult/consult",
+    "pages/square/square",
     "pages/mine/mine",
     "pages/login/login",
     "pages/addPet/addPet",
     "pages/chat/chat",
-    "pages/recordDetail/recordDetail"
+    "pages/recordDetail/recordDetail",
+    "pages/firstaid/firstaid"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -25,6 +27,12 @@
         "text": "AI问诊",
         "iconPath": "images/tabbar/consult.png",
         "selectedIconPath": "images/tabbar/consult-active.png"
+      },
+      {
+        "pagePath": "pages/square/square",
+        "text": "问诊广场",
+        "iconPath": "images/tabbar/square.png",
+        "selectedIconPath": "images/tabbar/square-active.png"
       },
       {
         "pagePath": "pages/mine/mine",

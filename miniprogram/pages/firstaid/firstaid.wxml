@@ -1,0 +1,41 @@
+<view class="page">
+  <view class="head">
+    <view class="head-title">宠物急救指南</view>
+    <view class="head-sub">📴 内容已内置本机 · 离线可用，无需网络</view>
+  </view>
+
+  <view class="offline-banner">
+    <text class="ob-icon">📴</text>
+    <text>紧急情况先做急救处理，同时尽快送医</text>
+  </view>
+
+  <view wx:for="{{guides}}" wx:key="id" class="guide card">
+    <view class="g-head" data-id="{{item.id}}" bindtap="onToggle">
+      <view class="g-icon">{{item.icon}}</view>
+      <view class="g-meta">
+        <view class="g-title">{{item.title}}</view>
+        <view class="g-tag">{{item.tag}}</view>
+      </view>
+      <text class="g-arrow">{{openId === item.id ? '▾' : '▸'}}</text>
+    </view>
+
+    <view wx:if="{{openId === item.id}}" class="g-body">
+      <view wx:for="{{item.steps}}" wx:for-item="s" wx:for-index="si" wx:key="title" class="g-step">
+        <view class="step-no">{{si + 1}}</view>
+        <view class="step-body">
+          <view class="step-title">{{s.title}}</view>
+          <view class="step-desc">{{s.desc}}</view>
+        </view>
+      </view>
+
+      <view class="g-warning">
+        <text class="gw-icon">⚠️</text>
+        <text class="gw-text">{{item.warning}}</text>
+      </view>
+
+      <view class="g-call" bindtap="onCallHospital">急救后如何找到附近宠物医院？</view>
+    </view>
+  </view>
+
+  <view class="disclaimer">本指南为通用急救常识，不能替代执业兽医的现场救治。</view>
+</view>

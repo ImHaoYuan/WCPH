@@ -25,10 +25,35 @@
 
 .pet-item {
   display: inline-block;
+  position: relative;
   width: 132rpx;
   margin-right: 24rpx;
   text-align: center;
   vertical-align: top;
+}
+
+/* 删除模式徽标：头像右上角红色小圆 + 白色横线 */
+.del-badge {
+  position: absolute;
+  top: -6rpx;
+  right: 6rpx;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: #ff5a5f;
+  border: 2rpx solid #fff;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.del-badge-line {
+  width: 18rpx;
+  height: 4rpx;
+  border-radius: 2rpx;
+  background: #fff;
 }
 
 .avatar {
@@ -64,6 +89,15 @@
   color: var(--primary);
   line-height: 1;
   margin-top: -6rpx;
+}
+
+/* 删除框：尺寸、虚线圆、布局与添加框一致，仅图标红色区分 */
+.del-avatar {
+  border-color: #ffb3b6;
+}
+
+.del-plus {
+  color: #ff5a5f;
 }
 
 .pet-name {
@@ -151,21 +185,112 @@
   padding: 0 40rpx;
 }
 
-.footer-space {
-  height: 160rpx;
+/* 问诊入口按钮组：左=拍照/视频上传（橙红），右=文字问诊（蓝紫），正方形大按钮 */
+.consult-actions {
+  display: flex;
+  align-items: center;
+  margin: 24rpx 32rpx 8rpx;
 }
 
-/* 悬浮按钮 */
-.fab {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 20rpx 40rpx calc(20rpx + env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, rgba(245,246,250,0) 0%, #F5F6FA 30%);
+.btn-media,
+.btn-text {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  height: 320rpx;
+  border-radius: 24rpx;
+  border: none;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.5;
+  font-weight: 600;
 }
 
-.fab-btn {
-  width: 100%;
-  box-shadow: 0 10rpx 28rpx rgba(91, 124, 250, 0.35);
+.btn-media::after,
+.btn-text::after {
+  border: none;
+}
+
+.btn-media {
+  background: linear-gradient(135deg, #FF9A5A 0%, #FF6B81 100%);
+  box-shadow: 0 10rpx 24rpx rgba(255, 107, 129, 0.3);
+}
+
+.btn-text {
+  margin-left: 24rpx;
+  background: linear-gradient(135deg, #5B7CFA 0%, #7C6AFB 100%);
+  box-shadow: 0 10rpx 24rpx rgba(91, 124, 250, 0.3);
+}
+
+.btn-emoji {
+  font-size: 64rpx;
+  line-height: 1.2;
+  margin-bottom: 12rpx;
+}
+
+.btn-label {
+  font-size: 28rpx;
+  text-align: center;
+}
+
+/* 急救指南入口（按钮组下方，急救红渐变，醒目） */
+.firstaid-entry {
+  display: flex;
+  align-items: center;
+  margin: 28rpx 32rpx 0;
+  padding: 36rpx 32rpx;
+  border-radius: 28rpx;
+  background: linear-gradient(135deg, #FF6B6E 0%, #FF9A5A 100%);
+  box-shadow: 0 12rpx 30rpx rgba(255, 107, 110, 0.38);
+}
+
+.fa-icon {
+  width: 96rpx;
+  height: 96rpx;
+  flex: 0 0 96rpx;
+  border-radius: 26rpx;
+  background: rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52rpx;
+}
+
+.fa-body {
+  flex: 1;
+  min-width: 0;
+  margin-left: 24rpx;
+}
+
+.fa-title {
+  font-size: 33rpx;
+  font-weight: 700;
+  color: #fff;
+}
+
+.fa-sub {
+  margin-top: 8rpx;
+  font-size: 23rpx;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.fa-badge {
+  flex: 0 0 auto;
+  margin-right: 10rpx;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.92);
+  color: #E0552F;
+  font-size: 20rpx;
+  font-weight: 700;
+}
+
+.fa-arrow {
+  flex: 0 0 auto;
+  font-size: 44rpx;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0 8rpx;
 }

@@ -1,0 +1,9 @@
+{
+  "name": "square",
+  "version": "1.0.0",
+  "description": "问诊广场：脱敏案例列表/点赞/评论/发布",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

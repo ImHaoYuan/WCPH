@@ -59,12 +59,29 @@ Page({
     const p2 = cloud
       .listRecords()
       .then(list => {
-        const records = (list || []).map(r =>
-          Object.assign({}, r, {
+        const records = (list || []).map(r => {
+          // 灰色小字：本次问诊的第一句话（优先取第一条真实文字，超过5个字截断为 xxxxx...）
+          const userMsgs = (r.messages || []).filter(m => m.role === 'user')
+          let firstQuestion = ''
+          for (const m of userMsgs) {
+            const t = String(m.content || '').trim()
+            if (t && t !== '[图片]' && t !== '[视频]') {
+              firstQuestion = t
+              break
+            }
+          }
+          if (!firstQuestion) {
+            // 整条记录没有文字时，按媒体类型标注
+            const hasVideo = userMsgs.some(m => m.video || String(m.content || '') === '[视频]')
+            firstQuestion = hasVideo ? '视频问诊' : '图片问诊'
+          }
+          if (firstQuestion.length > 5) firstQuestion = firstQuestion.slice(0, 5) + '...'
+          return Object.assign({}, r, {
             avatarIsImage: isImageUrl(r.petAvatar),
-            timeText: util.formatDateTime(r.createdAt)
+            timeText: util.formatDateTime(r.createdAt),
+            firstQuestion
           })
-        )
+        })
         this.setData({ records })
       })
       .catch(cloud.toastError)

@@ -22,7 +22,7 @@ exports.main = async (event) => {
     if (action === 'list') {
       const res = await col
         .where({ _openid: OPENID })
-        .field({ petName: true, petAvatar: true, title: true, createdAt: true })
+        .field({ petName: true, petAvatar: true, title: true, createdAt: true, messages: true })
         .orderBy('createdAt', 'desc')
         .limit(50)
         .get()

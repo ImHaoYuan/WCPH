@@ -45,6 +45,8 @@
 }
 
 .line {
+  display: flex;
+  align-items: flex-start;
   padding: 24rpx 0;
   border-bottom: 2rpx solid #F0F1F5;
 }
@@ -53,22 +55,103 @@
   border-bottom: none;
 }
 
-.role {
-  display: inline-block;
-  font-size: 22rpx;
-  padding: 4rpx 16rpx;
-  border-radius: 999rpx;
+.line.user {
+  flex-direction: row-reverse;
+}
+
+/* 头像 */
+.line-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  flex: 0 0 64rpx;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.line.user .line-avatar {
+  background: #EAF7EF;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+}
+
+.avatar-emoji {
+  font-size: 34rpx;
+  line-height: 1;
+}
+
+.line-body {
+  flex: 1;
+  min-width: 0;
+  margin: 0 16rpx;
+}
+
+.line.user .line-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.line-head {
+  display: flex;
+  align-items: center;
   margin-bottom: 12rpx;
 }
 
-.line.ai .role {
+.line-name {
+  display: inline-block;
+  font-size: 22rpx;
+  line-height: 1.4;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+}
+
+/* 紧急程度分级徽标（历史记录） */
+.urgency-badge {
+  margin-left: 12rpx;
+  font-size: 22rpx;
+  line-height: 1.4;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+}
+
+.urgency-badge.red {
+  background: #FFECEC;
+  color: #E5484D;
+  border: 2rpx solid #FFB3B3;
+}
+
+.urgency-badge.yellow {
+  background: #FFF6E5;
+  color: #C77800;
+  border: 2rpx solid #FFD591;
+}
+
+.urgency-badge.green {
+  background: #E9F9F0;
+  color: #1F9D63;
+  border: 2rpx solid #A8E6C3;
+}
+
+.line.ai .line-name {
   background: var(--primary-soft);
   color: var(--primary);
 }
 
-.line.user .role {
+.line.user .line-name {
   background: #EAF7EF;
   color: #2BB673;
+}
+
+.line.user .urgency-badge {
+  margin-left: 0;
+  margin-right: 12rpx;
 }
 
 .content {
@@ -80,12 +163,39 @@
   word-break: break-all;
 }
 
+/* 聊天记录中的图片/视频 */
+.msg-imgs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 12rpx;
+}
+
+.msg-img {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 14rpx;
+  background: #F2F3F7;
+}
+
+.msg-video {
+  width: 100%;
+  height: 320rpx;
+  margin-top: 12rpx;
+  border-radius: 14rpx;
+  background: #000;
+}
+
 .notice {
   text-align: center;
   color: var(--text-light);
   font-size: 22rpx;
   margin: 32rpx 24rpx;
   line-height: 1.6;
+}
+
+.consult-btn {
+  margin: 40rpx 8rpx 0;
 }
 
 .btn-danger {
