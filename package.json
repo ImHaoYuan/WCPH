@@ -1,7 +1,7 @@
 {
-  "name": "miniprogram-demo",
+  "name": "ai-pet-assistant",
   "version": "1.0.0",
-  "description": "WeChat miniprogram demo",
+  "description": "AI 宠物助手 · 微信小程序（云开发）",
   "scripts": {
     "lint": "eslint ."
   },

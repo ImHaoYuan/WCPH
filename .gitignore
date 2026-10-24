@@ -12,3 +12,7 @@ $RECYCLE.BIN/
 
 # Node.js
 node_modules/
+
+# 会话记忆与本地 skill 目录
+memory/
+.opencode/
