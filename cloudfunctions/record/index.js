@@ -22,7 +22,16 @@ exports.main = async (event) => {
     if (action === 'list') {
       const res = await col
         .where({ _openid: OPENID })
-        .field({ petName: true, petAvatar: true, title: true, createdAt: true, messages: true })
+        .field({
+          petId: true,
+          petName: true,
+          petAvatar: true,
+          title: true,
+          published: true,
+          createdAt: true,
+          updatedAt: true,
+          messages: true
+        })
         .orderBy('createdAt', 'desc')
         .limit(50)
         .get()
@@ -37,17 +46,49 @@ exports.main = async (event) => {
 
     if (action === 'add') {
       const r = event.record || {}
+      // 未命名时自动编号：问诊记录1、问诊记录2……
+      let title = (r.title || '').trim()
+      if (!title) {
+        let total = 0
+        try {
+          const c = await col.where({ _openid: OPENID }).count()
+          total = c.total || 0
+        } catch (e) {
+          total = 0
+        }
+        title = `问诊记录${total + 1}`
+      }
       const data = {
         _openid: OPENID,
         petId: r.petId || '',
         petName: r.petName || '',
         petAvatar: r.petAvatar || '',
-        title: r.title || '新问诊',
+        title: title.slice(0, 20),
         messages: r.messages || [],
-        createdAt: Date.now()
+        published: false,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
       }
       const res = await col.add({ data })
       return { ok: true, data: Object.assign({ _id: res._id }, data) }
+    }
+
+    if (action === 'rename') {
+      const title = (event.title || '').trim().slice(0, 20)
+      if (!title) return { ok: false, msg: '名称不能为空' }
+      const exist = await col.where({ _openid: OPENID, _id: event.id }).limit(1).get()
+      if (!exist.data.length) return { ok: false, msg: '记录不存在' }
+      await col.doc(event.id).update({ data: { title, updatedAt: Date.now() } })
+      return { ok: true, data: { id: event.id, title } }
+    }
+
+    if (action === 'markPublished') {
+      const exist = await col.where({ _openid: OPENID, _id: event.id }).limit(1).get()
+      if (!exist.data.length) return { ok: false, msg: '记录不存在' }
+      await col.doc(event.id).update({
+        data: { published: true, squarePostId: event.squarePostId || '', updatedAt: Date.now() }
+      })
+      return { ok: true, data: { id: event.id, published: true } }
     }
 
     if (action === 'update') {

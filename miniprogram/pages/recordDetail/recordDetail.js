@@ -41,10 +41,10 @@ Page({
     wx.previewImage({ urls: urls || [cur], current: cur })
   },
 
-  // 跳转 AI 问诊聊天页，优先带原宠物
+  // 跳转 AI 问诊聊天页，直接打开该条问诊档案继续对话
   onContinueConsult() {
-    const petId = (this.data.record && this.data.record.petId) || ''
-    wx.navigateTo({ url: '/pages/chat/chat' + (petId ? '?petId=' + petId : '') })
+    const id = this.data.id || (this.data.record && this.data.record._id) || ''
+    wx.navigateTo({ url: '/pages/chat/chat' + (id ? '?sessionId=' + id : '') })
   },
 
   onDelete() {

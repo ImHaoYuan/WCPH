@@ -188,3 +188,26 @@
 .ph {
   color: var(--text-light);
 }
+
+/* 右下角发布按钮 */
+.fab {
+  position: fixed;
+  right: 40rpx;
+  bottom: calc(48rpx + env(safe-area-inset-bottom));
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 52rpx;
+  background: linear-gradient(135deg, #6C8CFF 0%, #9B7BFF 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12rpx 28rpx rgba(108, 140, 255, 0.4);
+  z-index: 20;
+}
+
+.fab-plus {
+  color: #fff;
+  font-size: 56rpx;
+  line-height: 1;
+  margin-top: -6rpx;
+}

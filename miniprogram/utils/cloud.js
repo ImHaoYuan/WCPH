@@ -5,11 +5,12 @@
 
 function call(name, data) {
   return wx.cloud
-    .callFunction({ name, data })
+    .callFunction({ name, data, timeout: 60000 })
     .then(res => {
       const result = res && res.result
       if (result && result.ok === false) {
-        return Promise.reject(new Error(result.msg || '操作失败'))
+        const detail = result.detail ? `｜${result.detail}` : ''
+        return Promise.reject(new Error((result.msg || '操作失败') + detail))
       }
       return result ? result.data : null
     })
@@ -52,7 +53,14 @@ module.exports = {
   getRecord: id => call('record', { action: 'get', id }),
   addRecord: record => call('record', { action: 'add', record }),
   updateRecord: (id, record) => call('record', { action: 'update', id, record }),
+  renameRecord: (id, title) => call('record', { action: 'rename', id, title }),
+  markRecordPublished: (id, squarePostId) =>
+    call('record', { action: 'markPublished', id, squarePostId }),
   deleteRecord: id => call('record', { action: 'remove', id }),
+
+  // ===== AI 问诊助手 =====
+  assistantAsk: (question, petProfile, fileIDs) =>
+    call('assistant', { question, petProfile, fileIDs }),
 
   // ===== 问诊广场 =====
   squareList: () => call('square', { action: 'list' }),

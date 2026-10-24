@@ -40,6 +40,119 @@
   height: 64rpx;
 }
 
+.nav-actions {
+  display: flex;
+  align-items: center;
+}
+
+.nav-act {
+  width: 54rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  text-align: center;
+  font-size: 28rpx;
+}
+
+.nav-title {
+  padding: 0 8rpx;
+}
+
+/* 会话选择面板（档案袋） */
+.sheet-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(20, 24, 40, 0.45);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.sheet {
+  background: #fff;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 28rpx 28rpx calc(24rpx + env(safe-area-inset-bottom));
+  max-height: 72vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet-head {
+  margin-bottom: 20rpx;
+}
+
+.sheet-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #2B2F3A;
+}
+
+.sheet-sub {
+  font-size: 23rpx;
+  color: #9AA0AC;
+  margin-top: 6rpx;
+}
+
+.sheet-new {
+  background: linear-gradient(135deg, #6C8CFF 0%, #9B7BFF 100%);
+  color: #fff;
+  text-align: center;
+  padding: 24rpx;
+  border-radius: 20rpx;
+  font-size: 29rpx;
+  font-weight: 600;
+  margin-bottom: 18rpx;
+}
+
+.sheet-list {
+  max-height: 44vh;
+}
+
+.sheet-item {
+  padding: 22rpx;
+  border: 2rpx solid #EEF0F6;
+  border-radius: 20rpx;
+  margin-bottom: 14rpx;
+}
+
+.si-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.si-title {
+  flex: 1;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2B2F3A;
+}
+
+.si-badge {
+  font-size: 20rpx;
+  color: #5B7CFA;
+  background: #EEF2FF;
+  padding: 4rpx 12rpx;
+  border-radius: 10rpx;
+  margin-left: 12rpx;
+}
+
+.si-sub {
+  font-size: 22rpx;
+  color: #9AA0AC;
+  margin-top: 8rpx;
+}
+
+.sheet-empty {
+  text-align: center;
+  color: #B0B6C3;
+  font-size: 24rpx;
+  padding: 30rpx;
+}
+
 /* 顶部 */
 .topbar {
   padding: 16rpx 24rpx;
@@ -267,6 +380,32 @@
   height: 12rpx;
 }
 
+/* 快捷提问 */
+.quick-bar {
+  white-space: nowrap;
+  padding: 12rpx 24rpx 8rpx;
+  background: #fff;
+}
+
+.quick-chip {
+  display: inline-block;
+  padding: 12rpx 26rpx;
+  margin-right: 16rpx;
+  border-radius: 999rpx;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 26rpx;
+}
+
+/* 拍摄提示 */
+.shoot-tip {
+  padding: 0 28rpx 10rpx;
+  background: #fff;
+  color: #9AA0AC;
+  font-size: 22rpx;
+  line-height: 1.6;
+}
+
 /* 输入栏 */
 .inputbar {
   display: flex;
@@ -274,6 +413,19 @@
   padding: 16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom));
   background: #fff;
   border-top: 2rpx solid #F0F1F5;
+}
+
+.camera-btn {
+  width: 76rpx;
+  height: 76rpx;
+  flex: 0 0 76rpx;
+  border-radius: 50%;
+  background: #F2F3F7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  margin-right: 16rpx;
 }
 
 .msg-input {

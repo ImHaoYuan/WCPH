@@ -65,4 +65,9 @@
   </view>
 
   <view class="disclaimer">案例内容仅供参考，不能替代执业兽医的现场诊断。</view>
+
+  <!-- 右下角发布按钮 -->
+  <view class="fab" bindtap="onCreateTopic">
+    <text class="fab-plus">＋</text>
+  </view>
 </view>

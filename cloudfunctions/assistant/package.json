@@ -1,0 +1,9 @@
+{
+  "name": "assistant",
+  "version": "1.0.0",
+  "description": "AI 宠物问诊（文字 + 拍照）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

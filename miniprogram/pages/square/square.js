@@ -110,6 +110,12 @@ Page({
     this.load().then(() => wx.stopPullDownRefresh())
   },
 
+  // 右下角 + ：发布求助话题
+  onCreateTopic() {
+    if (!getApp().requireLogin()) return
+    wx.navigateTo({ url: '/pages/topic/topic' })
+  },
+
   load() {
     return cloud
       .squareList()

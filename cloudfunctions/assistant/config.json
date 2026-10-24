@@ -1,0 +1,6 @@
+{
+  "timeout": 60,
+  "envVariables": {
+    "ZHIPU_API_KEY": "在此填入你的智谱APIKey（或部署后在云开发控制台设置环境变量，勿提交真实Key）"
+  }
+}
