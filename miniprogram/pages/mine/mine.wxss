@@ -210,6 +210,101 @@
   padding: 0 6rpx;
 }
 
+/* 附近宠物医院入口 */
+.hosp-entry {
+  display: flex;
+  align-items: center;
+  margin-top: 24rpx;
+  padding: 26rpx 28rpx;
+}
+
+.he-icon {
+  width: 84rpx;
+  height: 84rpx;
+  flex: 0 0 84rpx;
+  border-radius: 24rpx;
+  background: var(--primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42rpx;
+}
+
+.he-body {
+  flex: 1;
+  min-width: 0;
+  margin-left: 22rpx;
+}
+
+.he-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.he-sub {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: var(--text-sub);
+}
+
+.he-arrow {
+  flex: 0 0 auto;
+  color: var(--text-light);
+  font-size: 38rpx;
+  margin-left: 12rpx;
+}
+
+/* 健康计划 */
+.rem-card {
+  display: flex;
+  align-items: center;
+  padding: 22rpx 28rpx;
+  margin-top: 20rpx;
+}
+
+.rem-emoji {
+  width: 76rpx;
+  height: 76rpx;
+  flex: 0 0 76rpx;
+  border-radius: 20rpx;
+  background: var(--primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38rpx;
+}
+
+.rem-info {
+  flex: 1;
+  margin-left: 20rpx;
+  min-width: 0;
+}
+
+.rem-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.rem-sub {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: var(--text-sub);
+}
+
+.rem-due {
+  flex: 0 0 auto;
+  margin-left: 12rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.rem-due.danger {
+  color: var(--danger);
+}
+
 /* 问诊记录 */
 .section {
   margin-top: 24rpx;
@@ -253,6 +348,59 @@
   color: var(--text-main);
   flex: 0 0 auto;
   max-width: 60%;
+}
+
+.r-badge {
+  flex: 0 0 auto;
+  margin-left: 12rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  background: #E8F6EE;
+  color: #3BA05F;
+  font-size: 20rpx;
+}
+
+.del-link {
+  flex: 0 0 auto;
+  margin-left: 16rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  background: #FFF0F0;
+  color: var(--danger);
+  font-size: 22rpx;
+}
+
+/* 菜单 */
+.menu {
+  margin-top: 24rpx;
+  padding: 8rpx 28rpx;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  min-height: 100rpx;
+  border-bottom: 2rpx solid #F0F1F5;
+}
+
+.menu-item:last-child {
+  border-bottom: none;
+}
+
+.mi-icon {
+  width: 64rpx;
+  font-size: 36rpx;
+}
+
+.mi-label {
+  flex: 1;
+  font-size: 28rpx;
+  color: var(--text-main);
+}
+
+.mi-arrow {
+  color: var(--text-light);
+  font-size: 38rpx;
 }
 
 .r-question {

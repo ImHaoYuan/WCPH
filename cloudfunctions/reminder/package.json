@@ -1,0 +1,9 @@
+{
+  "name": "reminder",
+  "version": "1.0.0",
+  "description": "健康计划提醒：CRUD / 完成 / 跳过 / 恢复，周期提醒自动排下一次",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

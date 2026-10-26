@@ -107,6 +107,11 @@
   color: var(--text-sub);
 }
 
+/* 顶部品牌卡片容器 */
+.hero-wrap {
+  padding: 24rpx 32rpx 0;
+}
+
 /* 介绍区 */
 .intro {
   padding: 8rpx 32rpx 0;
@@ -185,14 +190,14 @@
   padding: 0 40rpx;
 }
 
-/* 问诊入口按钮组：左=拍照/视频上传（橙红），右=文字问诊（蓝紫），正方形大按钮 */
+/* 问诊入口按钮组：左=症状拍照问诊，右=文字问诊，正方形大按钮 */
 .consult-actions {
   display: flex;
   align-items: center;
   margin: 24rpx 32rpx 8rpx;
 }
 
-.btn-media,
+.btn-photo,
 .btn-text {
   flex: 1;
   margin: 0;
@@ -209,12 +214,12 @@
   font-weight: 600;
 }
 
-.btn-media::after,
+.btn-photo::after,
 .btn-text::after {
   border: none;
 }
 
-.btn-media {
+.btn-photo {
   background: linear-gradient(135deg, #FF9A5A 0%, #FF6B81 100%);
   box-shadow: 0 10rpx 24rpx rgba(255, 107, 129, 0.3);
 }

@@ -1,0 +1,67 @@
+<view class="page">
+  <view class="form card">
+    <view class="form-title">提醒内容</view>
+
+    <view class="row column">
+      <text class="row-label">提醒类型</text>
+      <view class="type-grid">
+        <view
+          wx:for="{{types}}"
+          wx:key="value"
+          class="type-item {{typeIndex === index ? 'active' : ''}}"
+          data-i="{{index}}"
+          bindtap="onType"
+        >{{item.emoji}} {{item.label}}</view>
+      </view>
+    </view>
+
+    <view class="row last">
+      <text class="row-label">提醒标题</text>
+      <input class="row-input" placeholder="请输入提醒内容" placeholder-class="ph" value="{{title}}" bindinput="onTitle" />
+    </view>
+  </view>
+
+  <view class="form card">
+    <view class="form-title">时间安排</view>
+
+    <picker class="row" mode="selector" range="{{petNames}}" value="{{petIndex}}" bindchange="onPet">
+      <view class="row-inner">
+        <text class="row-label">关联宠物</text>
+        <view class="row-value">
+          <text>{{petNames[petIndex] || '不关联宠物'}}</text>
+          <text class="arrow">›</text>
+        </view>
+      </view>
+    </picker>
+
+    <picker class="row" mode="date" value="{{dueDate}}" start="{{today}}" bindchange="onDue">
+      <view class="row-inner">
+        <text class="row-label">到期日期</text>
+        <view class="row-value {{dueDate ? '' : 'ph'}}">
+          <text>{{dueDate || '请选择日期'}}</text>
+          <text class="arrow">›</text>
+        </view>
+      </view>
+    </picker>
+
+    <picker class="row last" mode="selector" range="{{repeatLabels}}" value="{{repeatIndex}}" bindchange="onRepeat">
+      <view class="row-inner">
+        <text class="row-label">重复周期</text>
+        <view class="row-value">
+          <text>{{repeatLabels[repeatIndex]}}</text>
+          <text class="arrow">›</text>
+        </view>
+      </view>
+    </picker>
+  </view>
+
+  <view class="tip card">
+    <view class="tip-title">提醒方式</view>
+    <view class="tip-desc">到期当天在「健康计划」页内红字提示；完成周期提醒后会自动排下一次。微信订阅消息推送需在小程序后台申请模板后开启。</view>
+  </view>
+
+  <view class="actions">
+    <button class="btn-primary" loading="{{saving}}" bindtap="onSave">保存</button>
+    <button wx:if="{{id}}" class="btn-danger" bindtap="onDelete">删除该提醒</button>
+  </view>
+</view>

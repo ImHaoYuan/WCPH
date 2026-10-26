@@ -1,0 +1,58 @@
+<view class="page">
+  <!-- 主视觉横幅：深蓝紫渐变，与其他页面明显区分 -->
+  <view class="hero">
+    <view class="hero-deco d1"></view>
+    <view class="hero-deco d2"></view>
+    <view class="hero-deco d3"></view>
+    <view class="hero-icon">⭐</view>
+    <view class="hero-title">精选好帖</view>
+    <view class="hero-sub">点赞超过 {{min}} 的热门问诊案例 · 按热度排序</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="empty card">加载中…</view>
+  <view wx:elif="{{!posts.length}}" class="empty card">还没有点赞过百的帖子，快去广场为优质案例点赞吧</view>
+
+  <view
+    wx:for="{{posts}}"
+    wx:key="_id"
+    class="post card {{index < 3 ? 'top' + (index + 1) : ''}}"
+    data-id="{{item._id}}"
+    bindtap="onPostTap"
+  >
+    <view wx:if="{{index < 3}}" class="rank-badge">{{index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}}</view>
+    <view class="p-head">
+      <view class="p-avatar">{{item.kindEmoji}}</view>
+      <view class="p-meta">
+        <view class="p-title ellipsis">{{item.title}}</view>
+        <view class="p-sub">
+          {{item.petKind}}{{item.breedText}}
+          <text wx:if="{{item.part && item.part !== '其他'}}" class="part-tag">{{item.part}}</text>
+          <text wx:if="{{item.demo}}" class="demo-tag">示例</text>
+        </view>
+      </view>
+      <view class="hot-tag">🔥 {{item.likeCount}}赞</view>
+    </view>
+
+    <view class="p-excerpt" user-select>{{item.excerpt}}</view>
+
+    <image
+      wx:if="{{item.image}}"
+      class="p-img"
+      src="{{item.image}}"
+      mode="aspectFill"
+      lazy-load
+    ></image>
+
+    <view class="p-foot">
+      <view class="p-time">{{item.timeText}}</view>
+      <view class="p-actions">
+        <view
+          class="p-act {{item.likedByMe ? 'liked' : ''}}"
+          data-id="{{item._id}}"
+          catchtap="onLike"
+        >{{item.likedByMe ? '❤️' : '🤍'}} {{item.likeCount}}</view>
+        <view class="p-act">💬 {{item.commentCount}}</view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,18 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="empty">加载中…</view>
+  <block wx:elif="{{records.length}}">
+    <view class="rec-card card" wx:for="{{records}}" wx:key="_id" data-id="{{item._id}}" bindtap="onRecordTap">
+      <view class="r-avatar">{{item.petAvatar && !item.avatarIsImage ? item.petAvatar : '💬'}}</view>
+      <view class="r-info">
+        <view class="r-title-line">
+          <text class="r-title ellipsis">{{item.petName || item.title || '问诊记录'}}</text>
+          <text wx:if="{{item.published}}" class="r-badge">已发布</text>
+          <text wx:if="{{item.firstQuestion}}" class="r-question">{{item.firstQuestion}}</text>
+        </view>
+        <view class="r-desc">{{item.timeText}}</view>
+      </view>
+      <text class="r-arrow">›</text>
+    </view>
+  </block>
+  <view wx:else class="empty">暂无问诊记录</view>
+</view>

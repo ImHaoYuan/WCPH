@@ -1,0 +1,65 @@
+<view class="page">
+  <view class="head card">
+    <view class="head-left">
+      <view class="head-title">健康计划</view>
+      <view class="head-desc">待办 {{pendingList.length}} 项 · 已处理 {{doneList.length}} 项</view>
+    </view>
+    <view class="head-add" bindtap="onCreate">＋ 新建</view>
+  </view>
+
+  <view class="tabs card">
+    <view class="tab {{tab === 'pending' ? 'active' : ''}}" data-tab="pending" bindtap="onTab">待办 {{pendingList.length}}</view>
+    <view class="tab {{tab === 'done' ? 'active' : ''}}" data-tab="done" bindtap="onTab">已处理 {{doneList.length}}</view>
+  </view>
+
+  <view wx:if="{{!logged}}" class="empty card" bindtap="onCreate">登录后查看健康计划，点此去登录</view>
+
+  <block wx:elif="{{tab === 'pending'}}">
+    <view
+      class="rem-card card {{item.status === 'expired' ? 'expired' : ''}}"
+      wx:for="{{pendingList}}"
+      wx:key="_id"
+    >
+      <view class="r-head">
+        <view class="r-emoji">{{item.typeEmoji}}</view>
+        <view class="r-main">
+          <view class="r-title ellipsis">{{item.title}}</view>
+          <view class="r-sub ellipsis">
+            {{item.petName ? item.petName + ' · ' : ''}}{{item.typeLabel}}{{item.repeat !== 'none' ? ' · ' + item.repeatText : ''}} · {{item.dateText}}
+          </view>
+        </view>
+        <view class="r-due {{item.status === 'expired' ? 'danger' : 'normal'}}">{{item.dueText}}</view>
+      </view>
+      <view class="r-actions">
+        <text class="act-btn primary" data-id="{{item._id}}" bindtap="onComplete">完成</text>
+        <text class="act-btn" data-id="{{item._id}}" bindtap="onSkip">跳过</text>
+        <text class="act-btn" data-id="{{item._id}}" bindtap="onEdit">编辑</text>
+        <text class="act-btn danger" data-id="{{item._id}}" bindtap="onDelete">删除</text>
+      </view>
+    </view>
+    <view wx:if="{{!pendingList.length && !loading}}" class="empty card">暂无待办提醒，点上方「＋ 新建」添加</view>
+  </block>
+
+  <block wx:else>
+    <view class="rem-card card done" wx:for="{{doneList}}" wx:key="_id">
+      <view class="r-head">
+        <view class="r-emoji">{{item.typeEmoji}}</view>
+        <view class="r-main">
+          <view class="r-title-line">
+            <text class="r-title ellipsis">{{item.title}}</text>
+            <text class="r-status {{item.status === 'done' ? 'ok' : 'skip'}}">{{item.status === 'done' ? '已完成' : '已跳过'}}</text>
+          </view>
+          <view class="r-sub ellipsis">
+            {{item.petName ? item.petName + ' · ' : ''}}{{item.typeLabel}}{{item.repeat !== 'none' ? ' · ' + item.repeatText : ''}} · {{item.dateText}}
+          </view>
+        </view>
+      </view>
+      <view class="r-actions">
+        <text class="act-btn primary" data-id="{{item._id}}" bindtap="onReopen">恢复待办</text>
+        <text class="act-btn" data-id="{{item._id}}" bindtap="onEdit">编辑</text>
+        <text class="act-btn danger" data-id="{{item._id}}" bindtap="onDelete">删除</text>
+      </view>
+    </view>
+    <view wx:if="{{!doneList.length && !loading}}" class="empty card">暂无已处理提醒</view>
+  </block>
+</view>

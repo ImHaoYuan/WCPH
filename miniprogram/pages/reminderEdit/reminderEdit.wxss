@@ -1,0 +1,159 @@
+.page {
+  min-height: 100vh;
+  padding: 24rpx 24rpx calc(40rpx + env(safe-area-inset-bottom));
+}
+
+.form-title {
+  display: flex;
+  align-items: center;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--text-main);
+  padding: 24rpx 0 12rpx;
+}
+
+.form-title::before {
+  content: '';
+  width: 8rpx;
+  height: 28rpx;
+  border-radius: 4rpx;
+  background: var(--primary);
+  margin-right: 12rpx;
+}
+
+.form {
+  margin-top: 24rpx;
+  padding: 8rpx 28rpx;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  min-height: 104rpx;
+  border-bottom: 2rpx solid #F0F1F5;
+}
+
+.row.column {
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 8rpx 0 20rpx;
+  min-height: 0;
+}
+
+.row.column .row-label {
+  flex: 0 0 auto;
+  width: auto;
+  margin-bottom: 10rpx;
+}
+
+.row.last {
+  border-bottom: none;
+}
+
+.row-inner {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 104rpx;
+}
+
+.row-label {
+  width: 170rpx;
+  flex: 0 0 170rpx;
+  font-size: 28rpx;
+  color: var(--text-main);
+}
+
+.row-input {
+  flex: 1;
+  font-size: 28rpx;
+  text-align: right;
+  color: var(--text-main);
+}
+
+.row-value {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 28rpx;
+  color: var(--text-main);
+}
+
+.arrow {
+  margin-left: 12rpx;
+  color: var(--text-light);
+  font-size: 34rpx;
+}
+
+.ph {
+  color: #C2C6D0;
+}
+
+/* 类型宫格 */
+.type-grid {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.type-item {
+  width: 31%;
+  margin: 0 2% 14rpx 0;
+  padding: 14rpx 0;
+  text-align: center;
+  border-radius: 16rpx;
+  background: #F5F6FA;
+  border: 2rpx solid transparent;
+  font-size: 24rpx;
+  color: var(--text-sub);
+}
+
+.type-item:nth-child(3n) {
+  margin-right: 0;
+}
+
+.type-item.active {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* 提醒方式说明 */
+.tip {
+  margin-top: 24rpx;
+  padding: 24rpx 28rpx;
+}
+
+.tip-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.tip-desc {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: var(--text-sub);
+}
+
+/* 操作按钮 */
+.actions {
+  margin-top: 48rpx;
+  padding: 0 8rpx;
+}
+
+.btn-danger {
+  margin-top: 24rpx;
+  background: #fff;
+  color: var(--danger);
+  border-radius: 999rpx;
+  font-size: 30rpx;
+  line-height: 2.6;
+  border: 2rpx solid #FFD9DA;
+}
+
+.btn-danger::after {
+  border: none;
+}

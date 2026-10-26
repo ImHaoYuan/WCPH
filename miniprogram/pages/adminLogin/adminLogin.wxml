@@ -1,0 +1,22 @@
+<view class="page">
+  <view class="brand">
+    <view class="logo">🛡️</view>
+    <view class="app-name">管理员登录</view>
+    <view class="slogan">账号管理与内容审核后台</view>
+  </view>
+
+  <view class="form card">
+    <view class="field">
+      <text class="label">账号</text>
+      <input class="input" placeholder="请输入管理员账号" placeholder-class="ph" value="{{username}}" bindinput="onUsernameInput" />
+    </view>
+    <view class="field last">
+      <text class="label">密码</text>
+      <input class="input" password placeholder="请输入密码" placeholder-class="ph" value="{{password}}" bindinput="onPasswordInput" bindconfirm="doLogin" />
+    </view>
+  </view>
+
+  <button class="btn-primary submit" loading="{{saving}}" bindtap="doLogin">登录</button>
+
+  <view class="hint">演示环境默认管理员：admin / Admin@123456（登录后请在后台管理账号）</view>
+</view>

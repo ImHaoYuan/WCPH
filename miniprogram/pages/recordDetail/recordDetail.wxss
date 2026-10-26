@@ -198,6 +198,10 @@
   margin: 40rpx 8rpx 0;
 }
 
+.plan-btn {
+  margin: 24rpx 8rpx 0;
+}
+
 .btn-danger {
   margin: 24rpx 8rpx 0;
   background: #fff;
