@@ -44,5 +44,9 @@
 
   <button class="btn-primary consult-btn" bindtap="onContinueConsult">继续 AI 问诊</button>
 
+  <button wx:if="{{!published}}" class="btn-plain plan-btn" bindtap="onPublish" loading="{{publishing}}">发布到问诊广场</button>
+
+  <button class="btn-plain plan-btn" bindtap="onAddReminder">加入健康计划</button>
+
   <button class="btn-danger" bindtap="onDelete">删除该记录</button>
 </view>

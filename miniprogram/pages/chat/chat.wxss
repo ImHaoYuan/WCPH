@@ -272,6 +272,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
 }
 
 .empty-text {
@@ -282,6 +283,14 @@
 .add-link {
   font-size: 26rpx;
   color: var(--primary);
+}
+
+/* 调试信息（定位宠物加载问题时显示） */
+.debug-info {
+  flex-basis: 100%;
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  color: #C2C6D0;
 }
 
 .saved-tag {
@@ -584,6 +593,23 @@
 
 .urgency.red .urgency-label {
   color: #E5484D;
+}
+
+/* 红色预警：跳转附近医院的小按钮（预警标题右侧） */
+.urgency-hosp {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 4rpx 18rpx;
+  border-radius: 999rpx;
+  background: #fff;
+  border: 2rpx solid #FFB3B3;
+  color: #E5484D;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.urgency-hosp:active {
+  background: #FFF0F0;
 }
 
 .urgency.yellow {

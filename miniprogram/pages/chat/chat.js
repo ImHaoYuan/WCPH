@@ -39,6 +39,10 @@ Page({
     // 多模态：待发送附件
     pendingImages: [],
     pendingVideo: '',
+    // 宠物列表加载失败标记（区分"没有宠物"与"加载失败"）
+    petLoadError: false,
+    // 调试用：宠物加载状态
+    loadState: '',
     // 快捷提问入口
     quickQuestions: ['宠物呕吐怎么办', '拉稀是什么原因', '食欲下降', '皮肤脱毛瘙痒', '疫苗驱虫安排']
   },
@@ -47,6 +51,8 @@ Page({
   _pendingMedia: null,
   _pendingSessionId: '',
   _saveChain: null,
+  // 每个宠物的会话视图暂存：切换宠物时保存/恢复，切回来不丢对话
+  _petViews: {},
 
   onLoad(options) {
     // 自定义导航栏：状态栏高度 + 状态栏前景白色
@@ -61,10 +67,66 @@ Page({
     this._pendingMedia = getApp()._chatDraftMedia = getApp()._chatDraftMedia || { images: [], video: '' }
     this.setData({ pendingImages: this._pendingMedia.images, pendingVideo: this._pendingMedia.video })
     this._pendingSessionId = (options && options.sessionId) || ''
+    // 问诊表单跳转：结构化描述文本预填输入框（auto=1 时自动发送）
+    const draftText = (options && options.text) || getApp()._chatDraftText || ''
+    if (draftText) {
+      this.setData({ inputValue: draftText })
+      getApp()._chatDraftText = ''
+    }
+    this._autoSend = (options && options.auto) === '1'
+    // 免责声明弹窗与宠物加载解耦：加载立即执行，弹窗只负责"是否同意继续问诊"
+    this.checkDisclaimer()
     this.loadPets(options && options.petId)
   },
 
-  onShow() {},
+  // 首次 AI 问诊弹出免责声明；同意后执行回调（用于自动发送等后续动作）
+  checkDisclaimer(cb) {
+    if (wx.getStorageSync('disclaimer_agreed_v1')) {
+      if (cb) cb()
+      return
+    }
+    wx.showModal({
+      title: 'AI 问诊免责声明',
+      content:
+        'AI 助手仅提供初步健康评估与护理建议，不构成诊断、不开具处方，不能替代执业兽医的现场诊疗。急症请立即前往宠物医院。继续使用即表示您已了解并同意。',
+      confirmText: '同意',
+      cancelText: '不同意',
+      confirmColor: '#5B7CFA',
+      success: res => {
+        if (res.confirm) {
+          wx.setStorageSync('disclaimer_agreed_v1', true)
+          if (cb) cb()
+        } else {
+          this.leavePage()
+        }
+      }
+    })
+  },
+
+  leavePage() {
+    if (getCurrentPages().length > 1) wx.navigateBack()
+    else wx.switchTab({ url: '/pages/consult/consult' })
+  },
+
+  onShow() {
+    const app = getApp()
+    // 从添加/编辑宠物页返回时刷新宠物列表，避免仍提示"还没有宠物"
+    if (app._petsChanged) {
+      app._petsChanged = false
+      this.loadPets()
+      return
+    }
+    // 兜底：页面已初始化但宠物列表为空时重试加载（覆盖首次加载失败等场景）
+    if (this._initDone && !this.data.pets.length && !this._loadingPets) {
+      this.loadPets()
+    }
+  },
+
+  onRetryPets() {
+    this.loadPets()
+  },
+
+  noop() {},
 
   noop() {},
 
@@ -196,13 +258,24 @@ Page({
     })
   },
 
+  // 跳转附近宠物医院列表（按距离排序，可拨号/导航）
+  onNearbyHospitals() {
+    wx.navigateTo({ url: '/pages/hospitals/hospitals' })
+  },
+
   // ================= 宠物 =================
   loadPets(preselectId) {
+    // 防止并发重复加载
+    if (this._loadingPets) return
+    this._loadingPets = true
+    this.setData({ loadState: 'loading' })
     wx.showLoading({ title: '加载中' })
     cloud
       .listPets()
       .then(list => {
         wx.hideLoading()
+        this._loadingPets = false
+        this._initDone = true
         const pets = (list || []).map(p =>
           Object.assign({}, p, {
             avatarIsImage: isImageUrl(p.avatar),
@@ -214,13 +287,18 @@ Page({
         this.setData({
           pets,
           petIndex,
-          currentPet: petIndex >= 0 ? pets[petIndex] : {}
+          currentPet: petIndex >= 0 ? pets[petIndex] : {},
+          petLoadError: false,
+          loadState: 'ok:' + pets.length
         })
         this.afterPetsReady()
       })
       .catch(err => {
         wx.hideLoading()
-        cloud.toastError(err)
+        this._loadingPets = false
+        this._initDone = true
+        console.error('[chat] 宠物列表加载失败', err)
+        this.setData({ petLoadError: true, loadState: 'error:' + (err && err.message) })
         this.afterPetsReady()
       })
   },
@@ -233,6 +311,35 @@ Page({
       this.openSession(id)
       return
     }
+    // 问诊表单跳转：直接新建会话并自动发送
+    if (this._autoSend) {
+      this._autoSend = false
+      if (!this.data.currentPet || !this.data.currentPet.name) {
+        this.setData({ showSessionPicker: true, messages: [] })
+        this.loadSessions()
+        return
+      }
+      const proceed = () => {
+        this.setData({
+          showSessionPicker: false,
+          sessionId: '',
+          sessionTitle: '',
+          published: false,
+          messages: [this.greeting()],
+          scrollTo: 'bottom-anchor'
+        })
+        this.send()
+      }
+      // 未同意免责声明时先弹窗，同意后继续自动发送
+      if (!wx.getStorageSync('disclaimer_agreed_v1')) {
+        this.checkDisclaimer(proceed)
+        return
+      }
+      proceed()
+      return
+    }
+    // 已有会话/消息时（如从添加宠物页返回），不打断当前对话
+    if (this.data.sessionId || this.data.messages.length) return
     this.setData({ showSessionPicker: true, messages: [] })
     this.loadSessions()
   },
@@ -378,7 +485,7 @@ Page({
     })
   },
 
-  // 手动发布到问诊广场（默认不发，需用户主动确认）
+  // 手动发布到问诊广场（默认不发，需用户主动确认，可选择患处部位）
   onPublishSession() {
     if (this.data.published) {
       wx.showToast({ title: '该记录已发布到广场', icon: 'none' })
@@ -392,32 +499,45 @@ Page({
     const pet = this.data.currentPet || {}
     const raw =
       (firstUser.content || '').trim() || (firstUser.video ? '视频问诊求助' : '图片问诊求助')
-    wx.showModal({
-      title: '发布到问诊广场',
-      content: '将脱敏后公开以下内容（不含个人信息）：\n\n' + raw.slice(0, 60),
-      confirmText: '发布',
+    // 第一张云端图片作为广场缩略图
+    const thumb =
+      (firstUser.images || []).find(u => typeof u === 'string' && u.indexOf('cloud://') === 0) || ''
+    const PARTS = ['皮肤', '耳朵', '眼睛', '口腔', '粪便', '其他']
+    wx.showActionSheet({
+      itemList: PARTS,
       success: res => {
-        if (!res.confirm) return
-        wx.showLoading({ title: '发布中', mask: true })
-        cloud
-          .squarePublish({
-            petKind: pet.category || '宠物',
-            petBreed: pet.breed || '',
-            title: (this.data.sessionTitle || raw).slice(0, 40),
-            excerpt: raw.slice(0, 120)
-          })
-          .then(r => {
-            wx.hideLoading()
-            this.setData({ published: true })
-            if (this.data.sessionId && r && r._id) {
-              cloud.markRecordPublished(this.data.sessionId, r._id).catch(() => {})
-            }
-            wx.showToast({ title: '已发布到广场', icon: 'success' })
-          })
-          .catch(err => {
-            wx.hideLoading()
-            cloud.toastError(err)
-          })
+        const part = PARTS[res.tapIndex]
+        wx.showModal({
+          title: '发布到问诊广场',
+          content: '将脱敏后公开以下内容（不含个人信息）：\n\n' + raw.slice(0, 60),
+          confirmText: '发布',
+          success: r => {
+            if (!r.confirm) return
+            wx.showLoading({ title: '发布中', mask: true })
+            cloud
+              .squarePublish({
+                petKind: pet.category || '宠物',
+                petBreed: pet.breed || '',
+                part,
+                title: (this.data.sessionTitle || raw).slice(0, 40),
+                excerpt: raw.slice(0, 120),
+                image: thumb,
+                recordId: this.data.sessionId || ''
+              })
+              .then(res2 => {
+                wx.hideLoading()
+                this.setData({ published: true })
+                if (this.data.sessionId && res2 && res2._id) {
+                  cloud.markRecordPublished(this.data.sessionId, res2._id).catch(() => {})
+                }
+                wx.showToast({ title: '已发布到广场', icon: 'success' })
+              })
+              .catch(err => {
+                wx.hideLoading()
+                cloud.toastError(err)
+              })
+          }
+        })
       }
     })
   },
@@ -438,11 +558,43 @@ Page({
   switchPet(step) {
     const n = this.data.pets.length
     if (!n) return
+    if (this.data.sending) {
+      wx.showToast({ title: 'AI 正在回复，请稍候再切换', icon: 'none' })
+      return
+    }
+    // 先把当前宠物的会话视图暂存起来
+    const prevPetId = this.data.currentPet && this.data.currentPet._id
+    if (prevPetId) {
+      this._petViews[prevPetId] = {
+        sessionId: this.data.sessionId,
+        sessionTitle: this.data.sessionTitle,
+        published: this.data.published,
+        messages: this.data.messages.slice()
+      }
+    }
     const petIndex = (this.data.petIndex + step + n) % n
-    this.setData({
-      petIndex,
-      currentPet: this.data.pets[petIndex]
-    })
+    const currentPet = this.data.pets[petIndex]
+    this.setData({ petIndex, currentPet })
+    const view = this._petViews[currentPet._id]
+    if (view && view.messages.length) {
+      // 切回来：恢复该宠物之前的会话视图
+      this.setData({
+        sessionId: view.sessionId || '',
+        sessionTitle: view.sessionTitle || '',
+        published: !!view.published,
+        messages: view.messages,
+        scrollTo: 'bottom-anchor'
+      })
+    } else {
+      // 该宠物还没有会话：开启新会话
+      this.setData({
+        sessionId: '',
+        sessionTitle: '',
+        published: false,
+        messages: [this.greeting()],
+        scrollTo: 'bottom-anchor'
+      })
+    }
   },
 
   onAddPet() {
@@ -455,6 +607,11 @@ Page({
   },
 
   send() {
+    // 免责声明未同意时先弹窗，同意后继续发送
+    if (!wx.getStorageSync('disclaimer_agreed_v1')) {
+      this.checkDisclaimer(() => this.send())
+      return
+    }
     const text = this.data.inputValue.trim()
     const media = this._pendingMedia
     const hasMedia = media.images.length > 0 || !!media.video

@@ -82,6 +82,7 @@ function buildPetText(petProfile) {
     p.weight != null && `体重：${p.weight}kg`,
     p.birthDate && `出生日期：${p.birthDate}`,
     p.neutered && `绝育：${p.neutered}`,
+    p.vaccinated && `疫苗：${p.vaccinated}`,
     p.dewormed && `驱虫：${p.dewormed}`
   ].filter(Boolean)
   return `宠物档案：${parts.length ? parts.join('；') : '暂无'}`
@@ -150,6 +151,22 @@ exports.main = async event => {
 
   try {
     const { question = '', petProfile = {}, fileIDs = [] } = event
+
+    // 内容安全：问题文本违规直接拦截；openapi 不可用时放行（fail-open）
+    try {
+      const sec = await cloud.openapi.security.msgSecCheck({
+        version: 2,
+        scene: 2,
+        openid: cloud.getWXContext().OPENID,
+        content: question
+      })
+      const d = sec && sec.result
+      if (d && d.suggest && d.suggest !== 'pass') {
+        return { ok: false, msg: '问题内容涉嫌违规，请修改后重试' }
+      }
+    } catch (e) {
+      console.warn('[assistant] msgSecCheck 不可用，放行', e && e.message)
+    }
 
     const content = []
     for (const fileID of fileIDs.slice(0, MAX_IMAGES)) {

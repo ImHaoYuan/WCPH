@@ -20,6 +20,55 @@
   color: var(--text-sub);
 }
 
+/* 头部：标题 + 信封入口 */
+.head-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.msg-entry {
+  position: relative;
+  padding: 8rpx 12rpx 8rpx 0;
+  font-size: 44rpx;
+  line-height: 1;
+}
+
+.msg-badge {
+  position: absolute;
+  top: -6rpx;
+  right: -8rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  padding: 0 8rpx;
+  border-radius: 999rpx;
+  background: var(--danger);
+  color: #fff;
+  font-size: 20rpx;
+  line-height: 32rpx;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* 精选好帖入口 */
+.featured-entry {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 12rpx;
+  padding: 8rpx 24rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #FFF3E0 0%, #FFE8EC 100%);
+  border: 2rpx solid #FFD9A0;
+  color: #C77800;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.fe-arrow {
+  margin-left: 8rpx;
+  font-size: 28rpx;
+}
+
 /* 云端不可用提示条 */
 .offline-tip {
   margin: 24rpx 32rpx 0;
@@ -33,6 +82,7 @@
 
 /* 帖子卡片 */
 .post {
+  position: relative;
   margin: 24rpx 32rpx 0;
   padding: 28rpx;
 }
@@ -66,10 +116,54 @@
   color: var(--text-main);
 }
 
+.p-title-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.p-title-row .p-title {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 自己的帖子角标：橙粉渐变，与其余标签区分 */
+.my-tag {
+  flex: 0 0 auto;
+  margin-left: 12rpx;
+  padding: 2rpx 16rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #FF9F43 0%, #FF6B81 100%);
+  color: #fff;
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
 .p-sub {
   margin-top: 6rpx;
   font-size: 22rpx;
   color: var(--text-sub);
+}
+
+.part-tag {
+  display: inline-block;
+  margin-left: 12rpx;
+  padding: 2rpx 14rpx;
+  border-radius: 999rpx;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
+.demo-tag {
+  display: inline-block;
+  margin-left: 12rpx;
+  padding: 2rpx 14rpx;
+  border-radius: 999rpx;
+  background: #F2F3F7;
+  color: var(--text-light);
+  font-size: 20rpx;
 }
 
 .p-tag {
@@ -86,6 +180,15 @@
   font-size: 27rpx;
   line-height: 1.7;
   color: var(--text-main);
+}
+
+/* 帖子缩略图 */
+.p-img {
+  width: 100%;
+  height: 320rpx;
+  margin-top: 20rpx;
+  border-radius: 16rpx;
+  background: #F2F3F7;
 }
 
 .p-foot {
@@ -116,58 +219,67 @@
   color: #E5484D;
 }
 
-/* 评论区 */
-.p-comments {
-  margin-top: 20rpx;
-  padding-top: 20rpx;
-  border-top: 2rpx solid #F0F1F5;
+/* 收藏五角星：空心 ↔ 实心黄 */
+.p-act.fav {
+  font-size: 30rpx;
+  line-height: 1;
 }
 
-.c-item {
-  font-size: 25rpx;
-  line-height: 1.6;
+.p-act.fav-on {
+  color: #FFB800;
+}
+
+/* 「⋯」按钮与下拉菜单 */
+.p-more {
+  margin-left: 28rpx;
+  padding: 6rpx 10rpx;
+  font-size: 30rpx;
+  line-height: 1;
+  color: var(--text-sub);
+  letter-spacing: 4rpx;
+}
+
+.more-mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  background: transparent;
+}
+
+.more-menu {
+  position: absolute;
+  right: 20rpx;
+  bottom: 88rpx;
+  z-index: 40;
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 8rpx 30rpx rgba(31, 36, 48, 0.18);
   padding: 8rpx 0;
 }
 
-.c-author {
-  color: var(--primary);
-}
-
-.c-content {
+.mm-item {
+  padding: 16rpx 44rpx;
+  font-size: 26rpx;
   color: var(--text-main);
 }
 
-.c-empty {
-  font-size: 24rpx;
+.mm-item + .mm-item {
+  border-top: 2rpx solid #F5F6FA;
+}
+
+.mm-item:active {
+  background: #F5F6FA;
+}
+
+/* 分页加载提示 */
+.load-more {
+  padding: 32rpx 0;
+  text-align: center;
+  font-size: 22rpx;
   color: var(--text-light);
-  padding: 8rpx 0;
-}
-
-.c-input-row {
-  display: flex;
-  align-items: center;
-  margin-top: 16rpx;
-}
-
-.c-input {
-  flex: 1;
-  min-width: 0;
-  height: 64rpx;
-  padding: 0 24rpx;
-  border-radius: 999rpx;
-  background: #F2F3F7;
-  font-size: 25rpx;
-}
-
-.c-send {
-  margin-left: 16rpx;
-  padding: 0 28rpx;
-  height: 64rpx;
-  line-height: 64rpx;
-  border-radius: 999rpx;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-  color: #fff;
-  font-size: 24rpx;
 }
 
 .empty {
@@ -210,4 +322,284 @@
   font-size: 56rpx;
   line-height: 1;
   margin-top: -6rpx;
+}
+
+/* 从消息页跳转定位时的高亮提示 */
+.post.highlight {
+  animation: post-flash 2.6s ease;
+}
+
+@keyframes post-flash {
+  0%, 55% {
+    box-shadow: 0 0 0 8rpx rgba(91, 124, 250, 0.35), 0 8rpx 30rpx rgba(91, 124, 250, 0.12);
+  }
+  100% {
+    box-shadow: 0 8rpx 30rpx rgba(91, 124, 250, 0.08);
+  }
+}
+
+/* 每日首次进入公告弹框（顶部下拉） */
+.notice-mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(17, 20, 30, 0.55);
+  z-index: 999;
+}
+
+.notice-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  background: #fff;
+  border-radius: 0 0 32rpx 32rpx;
+  padding: 32rpx 32rpx calc(24rpx + env(safe-area-inset-top));
+  animation: notice-drop 0.3s ease;
+}
+
+@keyframes notice-drop {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+
+.notice-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.notice-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.notice-x {
+  font-size: 34rpx;
+  color: var(--text-light);
+  padding: 8rpx 12rpx;
+}
+
+.notice-body {
+  margin-top: 20rpx;
+}
+
+.notice-line {
+  font-size: 27rpx;
+  color: var(--text-main);
+  line-height: 1.7;
+}
+
+.notice-item {
+  font-size: 26rpx;
+  color: var(--text-sub);
+  line-height: 1.8;
+  margin-top: 8rpx;
+}
+
+.notice-warn {
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: #E08A00;
+  background: #FFF7E8;
+  border-radius: 12rpx;
+  padding: 14rpx 20rpx;
+  line-height: 1.7;
+}
+
+.notice-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 28rpx;
+}
+
+.notice-check {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 8rpx;
+  border: 2rpx solid #D5D8E0;
+  margin-right: 12rpx;
+  color: #fff;
+  font-size: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkbox.checked {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.notice-check-text {
+  font-size: 25rpx;
+  color: var(--text-sub);
+}
+
+.notice-btn {
+  padding: 14rpx 44rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #6C8CFF 0%, #9B7BFF 100%);
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+/* 三标签导航（问诊大厅 / 精选好帖 / 官方好帖） */
+.tabs {
+  display: flex;
+  flex: 1;
+  align-items: center;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  font-size: 30rpx;
+  color: var(--text-sub);
+  padding: 16rpx 0 20rpx;
+  position: relative;
+}
+
+.tab.active {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 6rpx;
+  width: 48rpx;
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: linear-gradient(135deg, #6C8CFF 0%, #9B7BFF 100%);
+}
+
+/* 官方好帖：区别于大厅/精选的卡片样式（浅绿底 + 官方徽标） */
+.post.official-post {
+  background: linear-gradient(160deg, #F2FAF4 0%, #E8F5EC 100%);
+  border: 2rpx solid #CDEAD6;
+}
+
+.official-badge {
+  flex: 0 0 auto;
+  margin-left: 12rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #2BB673 0%, #3FCF8E 100%);
+  color: #fff;
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
+/* ===== 精选好帖：主视觉横幅（提示点赞过百上榜） ===== */
+.hero {
+  position: relative;
+  overflow: hidden;
+  margin: 24rpx 32rpx 0;
+  padding: 48rpx 40rpx;
+  border-radius: 32rpx;
+  background: linear-gradient(135deg, #2B2E8C 0%, #5B4BDB 45%, #8A5BFF 100%);
+  box-shadow: 0 16rpx 40rpx rgba(91, 75, 219, 0.35);
+}
+
+.hero-deco {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.hero-deco.d1 {
+  width: 260rpx;
+  height: 260rpx;
+  top: -120rpx;
+  right: -60rpx;
+}
+
+.hero-deco.d2 {
+  width: 160rpx;
+  height: 160rpx;
+  bottom: -70rpx;
+  left: 30%;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.hero-deco.d3 {
+  width: 80rpx;
+  height: 80rpx;
+  top: 40rpx;
+  left: 46%;
+  background: rgba(255, 216, 100, 0.25);
+}
+
+.hero-icon {
+  font-size: 56rpx;
+  line-height: 1;
+}
+
+.hero-title {
+  margin-top: 12rpx;
+  font-size: 48rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: #fff;
+}
+
+.hero-sub {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ===== 精选好帖：前三名金/银/铜配色 ===== */
+.post.top1 {
+  border: 2rpx solid #FFD76A;
+  box-shadow: 0 10rpx 30rpx rgba(255, 190, 70, 0.28);
+  background: linear-gradient(180deg, #FFFDF4 0%, #FFFFFF 100%);
+}
+
+.post.top2 {
+  border: 2rpx solid #C9D3E3;
+  box-shadow: 0 8rpx 26rpx rgba(150, 165, 190, 0.25);
+  background: linear-gradient(180deg, #FBFCFE 0%, #FFFFFF 100%);
+}
+
+.post.top3 {
+  border: 2rpx solid #E9B98A;
+  box-shadow: 0 8rpx 26rpx rgba(215, 150, 90, 0.22);
+  background: linear-gradient(180deg, #FFF9F2 0%, #FFFFFF 100%);
+}
+
+.rank-badge {
+  position: absolute;
+  top: -22rpx;
+  left: -8rpx;
+  font-size: 52rpx;
+  line-height: 1;
+  z-index: 5;
+}
+
+/* 精选帖热度标签 */
+.hot-tag {
+  flex: 0 0 auto;
+  margin-left: 12rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #FF7A45 0%, #FF4D6D 100%);
+  color: #fff;
+  font-size: 22rpx;
+  font-weight: 700;
+  box-shadow: 0 6rpx 16rpx rgba(255, 90, 100, 0.35);
 }

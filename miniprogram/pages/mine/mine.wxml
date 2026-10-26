@@ -60,27 +60,135 @@
     <view wx:else class="empty" bindtap="onAddPet">还没有添加宠物，点击这里去添加吧～</view>
   </view>
 
-  <!-- 问诊记录 -->
+  <!-- 附近宠物医院 -->
+  <view class="hosp-entry card" bindtap="onHospitals">
+    <view class="he-icon">🏥</view>
+    <view class="he-body">
+      <view class="he-title">附近宠物医院</view>
+      <view class="he-sub">按距离排序 · 支持一键拨号与导航</view>
+    </view>
+    <text class="he-arrow">›</text>
+  </view>
+
+  <!-- 健康计划 -->
+  <view class="section">
+    <view class="sec-head">
+      <text class="sec-title">健康计划</text>
+      <text wx:if="{{logged}}" class="sec-more" bindtap="onRemindersTap">全部 ›</text>
+    </view>
+
+    <view wx:if="{{!logged}}" class="empty card">登录后管理健康计划</view>
+    <block wx:elif="{{reminders.length}}">
+      <view class="rem-card card" wx:for="{{reminders}}" wx:key="_id" data-id="{{item._id}}" bindtap="onReminderTap">
+        <view class="rem-emoji">{{item.typeEmoji}}</view>
+        <view class="rem-info">
+          <view class="rem-title ellipsis">{{item.title}}</view>
+          <view class="rem-sub ellipsis">{{item.petName ? item.petName + ' · ' : ''}}{{item.typeLabel}}</view>
+        </view>
+        <view class="rem-due {{item.status === 'expired' ? 'danger' : ''}}">{{item.dueText}}</view>
+      </view>
+    </block>
+    <view wx:else class="empty card" bindtap="onRemindersTap">暂无健康计划，点击新建提醒</view>
+  </view>
+
+  <!-- 问诊记录：仅展示最新一条，点击“全部”进入完整列表 -->
   <view class="section">
     <view class="sec-head">
       <text class="sec-title">问诊记录</text>
+      <text wx:if="{{logged && records.length}}" class="sec-more" bindtap="onRecordsListTap">全部 ›</text>
     </view>
 
     <view wx:if="{{!logged}}" class="empty card">登录后查看问诊记录</view>
     <block wx:elif="{{records.length}}">
-      <view class="rec-card card" wx:for="{{records}}" wx:key="_id" data-id="{{item._id}}" bindtap="onRecordTap">
-        <view class="r-avatar">{{item.petAvatar && !item.avatarIsImage ? item.petAvatar : '💬'}}</view>
+      <view class="rec-card card" data-id="{{records[0]._id}}" bindtap="onRecordTap">
+        <view class="r-avatar">{{records[0].petAvatar && !records[0].avatarIsImage ? records[0].petAvatar : '💬'}}</view>
         <view class="r-info">
           <view class="r-title-line">
-            <text class="r-title ellipsis">{{item.petName || item.title || '问诊记录'}}</text>
-            <text wx:if="{{item.firstQuestion}}" class="r-question">{{item.firstQuestion}}</text>
+            <text class="r-title ellipsis">{{records[0].petName || records[0].title || '问诊记录'}}</text>
+            <text wx:if="{{records[0].published}}" class="r-badge">已发布</text>
+            <text wx:if="{{records[0].firstQuestion}}" class="r-question">{{records[0].firstQuestion}}</text>
           </view>
-          <view class="r-desc">{{item.timeText}}</view>
+          <view class="r-desc">{{records[0].timeText}}</view>
         </view>
         <text class="r-arrow">›</text>
       </view>
     </block>
     <view wx:else class="empty card">暂无问诊记录</view>
+  </view>
+
+  <!-- 我的发布：仅展示最新一条，点击“全部”进入完整列表 -->
+  <view class="section">
+    <view class="sec-head">
+      <text class="sec-title">我的发布</text>
+      <text wx:if="{{logged && myPosts.length}}" class="sec-more" bindtap="onMyPostsListTap">全部 ›</text>
+    </view>
+
+    <view wx:if="{{!logged}}" class="empty card">登录后查看我的发布</view>
+    <block wx:elif="{{myPosts.length}}">
+      <view class="rec-card card" data-id="{{myPosts[0]._id}}" bindtap="onMyPostTap">
+        <view class="r-avatar">{{myPosts[0].petKind === '猫' ? '🐱' : myPosts[0].petKind === '狗' ? '🐶' : '🐾'}}</view>
+        <view class="r-info">
+          <view class="r-title-line">
+            <text class="r-title ellipsis">{{myPosts[0].title}}</text>
+          </view>
+          <view class="r-desc">{{myPosts[0].petKind}}{{myPosts[0].petBreed ? ' · ' + myPosts[0].petBreed : ''}} · {{myPosts[0].timeText}}</view>
+        </view>
+        <text class="r-arrow">›</text>
+      </view>
+    </block>
+    <view wx:else class="empty card">还没有发布过内容，去广场发布吧</view>
+  </view>
+
+  <!-- 历史浏览记录：仅展示最新一条，点击“全部”进入完整列表 -->
+  <view class="section">
+    <view class="sec-head">
+      <text class="sec-title">历史浏览记录</text>
+      <text wx:if="{{logged && history.length}}" class="sec-more" bindtap="onHistoryTap">全部 ›</text>
+    </view>
+
+    <view wx:if="{{!logged}}" class="empty card">登录后查看浏览记录</view>
+    <block wx:elif="{{history.length}}">
+      <view class="rec-card card" data-id="{{history[0]._id}}" bindtap="onHistoryItemTap">
+        <view class="r-avatar">{{history[0].kindEmoji}}</view>
+        <view class="r-info">
+          <view class="r-title ellipsis">{{history[0].title}}</view>
+          <view class="r-desc">{{history[0].petKind}}{{history[0].petBreed ? ' · ' + history[0].petBreed : ''}} · 浏览于 {{history[0].timeText}}</view>
+        </view>
+        <text class="r-arrow">›</text>
+      </view>
+    </block>
+    <view wx:else class="empty card">暂无浏览记录，去广场逛逛吧</view>
+  </view>
+
+  <!-- 我的收藏 -->
+  <view class="section">
+    <view class="sec-head">
+      <text class="sec-title">我的收藏</text>
+    </view>
+
+    <view wx:if="{{!logged}}" class="empty card">登录后查看收藏</view>
+    <block wx:elif="{{favPosts.length}}">
+      <view class="rec-card card" wx:for="{{favPosts}}" wx:key="_id" data-id="{{item._id}}" bindtap="onFavPostTap">
+        <view class="r-avatar">{{item.kindEmoji}}</view>
+        <view class="r-info">
+          <view class="r-title-line">
+            <text class="r-title ellipsis">{{item.title}}</text>
+          </view>
+          <view class="r-desc">{{item.petKind}}{{item.breedText}} · {{item.timeText}}</view>
+        </view>
+        <text class="del-link" data-id="{{item._id}}" catchtap="onFavPostRemove">取消收藏</text>
+      </view>
+    </block>
+    <view wx:else class="empty card">还没有收藏的帖子，去广场点 ☆ 收藏吧</view>
+  </view>
+
+  <!-- 菜单 -->
+  <view wx:if="{{logged}}" class="menu card">
+    <view class="menu-item" bindtap="onSettingsTap">
+      <text class="mi-icon">⚙️</text>
+      <text class="mi-label">设置与协议</text>
+      <text class="mi-arrow">›</text>
+    </view>
   </view>
 
   <button wx:if="{{logged}}" class="logout" bindtap="onLogout">退出登录</button>

@@ -1,14 +1,27 @@
 {
   "pages": [
     "pages/consult/consult",
+    "pages/consultForm/consultForm",
     "pages/square/square",
+    "pages/featured/featured",
+    "pages/postDetail/postDetail",
+    "pages/messages/messages",
     "pages/mine/mine",
     "pages/login/login",
     "pages/addPet/addPet",
     "pages/chat/chat",
     "pages/recordDetail/recordDetail",
+    "pages/recordsList/recordsList",
+    "pages/myPosts/myPosts",
+    "pages/history/history",
+    "pages/reminders/reminders",
+    "pages/reminderEdit/reminderEdit",
+    "pages/hospitals/hospitals",
     "pages/firstaid/firstaid",
-    "pages/topic/topic"
+    "pages/topic/topic",
+    "pages/admin/admin",
+    "pages/adminLogin/adminLogin",
+    "pages/settings/settings"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -45,5 +58,11 @@
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
-  "lazyCodeLoading": "requiredComponents"
+  "lazyCodeLoading": "requiredComponents",
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于查找附近宠物医院并计算距离"
+    }
+  },
+  "requiredPrivateInfos": ["getLocation"]
 }

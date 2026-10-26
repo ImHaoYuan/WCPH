@@ -1,0 +1,53 @@
+.page {
+  min-height: 100vh;
+  padding: 24rpx 24rpx calc(40rpx + env(safe-area-inset-bottom));
+}
+
+.card {
+  margin-top: 24rpx;
+  padding: 8rpx 28rpx;
+}
+
+.s-head {
+  display: flex;
+  align-items: center;
+  min-height: 104rpx;
+}
+
+.s-icon {
+  width: 64rpx;
+  font-size: 36rpx;
+}
+
+.s-title {
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.s-arrow {
+  color: var(--text-light);
+  font-size: 38rpx;
+  transition: transform 0.2s;
+}
+
+.s-arrow.open {
+  transform: rotate(90deg);
+}
+
+.s-body {
+  padding: 4rpx 4rpx 28rpx;
+  font-size: 26rpx;
+  color: var(--text-sub);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.version {
+  margin-top: 48rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: var(--text-light);
+}

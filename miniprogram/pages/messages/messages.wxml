@@ -1,0 +1,24 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="empty card">加载中…</view>
+  <view wx:elif="{{!list.length}}" class="empty card">暂无消息，别人给你帖子的点赞和评论会显示在这里</view>
+
+  <view
+    wx:for="{{list}}"
+    wx:key="_id"
+    class="msg card {{item.read ? '' : 'unread'}}"
+    data-pid="{{item.postId}}"
+    bindtap="onTap"
+  >
+    <view class="m-icon">{{item.icon}}</view>
+    <view class="m-body">
+      <view class="m-title-line">
+        <text class="m-title">{{item.title}}</text>
+        <view wx:if="{{!item.read}}" class="m-dot"></view>
+      </view>
+      <view class="m-post ellipsis">「{{item.postTitle}}」</view>
+      <view wx:if="{{item.content}}" class="m-content ellipsis">{{item.content}}</view>
+      <view class="m-time">{{item.timeText}}</view>
+    </view>
+  </view>
+</view>
+

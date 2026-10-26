@@ -1,0 +1,311 @@
+.page {
+  min-height: 100vh;
+  padding: 24rpx 24rpx calc(40rpx + env(safe-area-inset-bottom));
+}
+
+.form-title {
+  display: flex;
+  align-items: center;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--text-main);
+  padding: 24rpx 0 12rpx;
+}
+
+.form-title::before {
+  content: '';
+  width: 8rpx;
+  height: 28rpx;
+  border-radius: 4rpx;
+  background: var(--primary);
+  margin-right: 12rpx;
+}
+
+.form {
+  margin-top: 24rpx;
+  padding: 8rpx 28rpx;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  min-height: 104rpx;
+  border-bottom: 2rpx solid #F0F1F5;
+}
+
+.row.column {
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 8rpx 0 20rpx;
+  min-height: 0;
+}
+
+.row.column.last {
+  padding-bottom: 16rpx;
+}
+
+.row.column .row-label {
+  flex: 0 0 auto;
+  width: auto;
+  margin-bottom: 10rpx;
+}
+
+.row-label {
+  width: 170rpx;
+  flex: 0 0 170rpx;
+  font-size: 28rpx;
+  color: var(--text-main);
+}
+
+.req {
+  color: var(--danger);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.chip {
+  padding: 10rpx 28rpx;
+  border-radius: 999rpx;
+  background: #F2F3F7;
+  color: var(--text-sub);
+  font-size: 26rpx;
+  margin: 6rpx 14rpx 6rpx 0;
+}
+
+.chip.active {
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* 拍摄引导 */
+.shoot-tips {
+  background: #F8FAFF;
+  border-radius: 16rpx;
+  padding: 20rpx 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.st-item {
+  font-size: 24rpx;
+  color: var(--text-sub);
+  line-height: 1.9;
+}
+
+/* 图片九宫格 */
+.img-grid {
+  display: flex;
+  flex-wrap: wrap;
+  padding-bottom: 24rpx;
+}
+
+.img-item {
+  position: relative;
+  width: 200rpx;
+  height: 200rpx;
+  margin: 0 14rpx 14rpx 0;
+}
+
+.img {
+  width: 100%;
+  height: 100%;
+  border-radius: 16rpx;
+  background: #F2F3F7;
+}
+
+.img-del {
+  position: absolute;
+  top: -12rpx;
+  right: -12rpx;
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  background: rgba(31, 36, 48, 0.75);
+  color: #fff;
+  font-size: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.img-add {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 16rpx;
+  border: 2rpx dashed #C2C6D0;
+  background: #FAFBFC;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.plus {
+  font-size: 56rpx;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.add-label {
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: var(--text-light);
+}
+
+/* 描述 */
+.desc {
+  width: 100%;
+  min-height: 160rpx;
+  padding: 16rpx 0 24rpx;
+  font-size: 28rpx;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+.ph {
+  color: #C2C6D0;
+}
+
+.tip {
+  margin: 24rpx 8rpx 0;
+  font-size: 22rpx;
+  color: var(--text-light);
+  line-height: 1.6;
+}
+
+.actions {
+  margin-top: 32rpx;
+  padding: 0 8rpx;
+}
+
+/* 宠物选择行 */
+.row-inner {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 104rpx;
+}
+
+.row-value {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 28rpx;
+  color: var(--text-main);
+}
+
+.arrow {
+  margin-left: 12rpx;
+  color: var(--text-light);
+  font-size: 34rpx;
+}
+
+.opt {
+  font-size: 22rpx;
+  font-weight: 400;
+  color: var(--text-light);
+  margin-left: 8rpx;
+}
+
+/* 分诊报告 */
+.report {
+  padding: 32rpx 28rpx;
+}
+
+.rp-head {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 24rpx;
+}
+
+.rp-badge {
+  flex: 0 0 auto;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #fff;
+  margin-right: 20rpx;
+  white-space: nowrap;
+}
+
+.rp-badge.red { background: #FF5A5F; }
+.rp-badge.yellow { background: #FF9F43; }
+.rp-badge.green { background: #2BB673; }
+
+.rp-summary {
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+.rp-images {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 24rpx;
+}
+
+.rp-img {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 16rpx;
+  margin: 0 14rpx 14rpx 0;
+  background: #F2F3F7;
+}
+
+.rp-content {
+  font-size: 28rpx;
+  line-height: 1.75;
+  color: var(--text-main);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.rp-followup {
+  margin-top: 28rpx;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  background: #F8FAFF;
+}
+
+.rp-followup-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 12rpx;
+}
+
+.rp-followup-item {
+  font-size: 26rpx;
+  color: var(--text-sub);
+  line-height: 1.8;
+}
+
+.rp-notice {
+  margin-top: 28rpx;
+  font-size: 22rpx;
+  color: var(--text-light);
+  line-height: 1.7;
+}
+
+.rp-actions {
+  display: flex;
+  margin-top: 32rpx;
+  padding: 0 8rpx;
+}
+
+.rp-actions .btn-plain {
+  flex: 1;
+}
+
+.rp-actions .btn-primary {
+  flex: 1;
+  margin-left: 24rpx;
+}

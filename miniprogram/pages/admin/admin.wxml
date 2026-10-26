@@ -1,0 +1,130 @@
+<view class="page">
+  <view wx:if="{{!isAdmin && !loading}}" class="empty card">
+    <view>无管理员权限，本页面仅管理员可见</view>
+    <button class="btn-plain go-login" bindtap="goAdminLogin">前往管理员登录</button>
+  </view>
+
+  <block wx:else>
+    <view class="tabs card">
+      <view class="tab {{tab === 'accounts' ? 'active' : ''}}" data-tab="accounts" bindtap="onTab">账号管理</view>
+      <view class="tab {{tab === 'posts' ? 'active' : ''}}" data-tab="posts" bindtap="onTab">帖子管理 {{posts.length}}</view>
+      <view class="tab {{tab === 'reports' ? 'active' : ''}}" data-tab="reports" bindtap="onTab">举报处理 {{reports.length}}</view>
+      <view class="tab {{tab === 'stats' ? 'active' : ''}}" data-tab="stats" bindtap="onTab">数据概览</view>
+    </view>
+
+    <!-- 账号管理 -->
+    <block wx:if="{{tab === 'accounts'}}">
+      <view class="acc-form card">
+        <view class="acc-form-title">添加账号</view>
+        <view class="acc-field">
+          <text class="acc-label">账号</text>
+          <input class="acc-input" placeholder="登录账号（字母/数字）" placeholder-class="ph" value="{{newAccount.username}}" data-key="username" bindinput="onAccountInput" />
+        </view>
+        <view class="acc-field">
+          <text class="acc-label">密码</text>
+          <input class="acc-input" password placeholder="至少6位" placeholder-class="ph" value="{{newAccount.password}}" data-key="password" bindinput="onAccountInput" />
+        </view>
+        <view class="acc-field">
+          <text class="acc-label">昵称</text>
+          <input class="acc-input" placeholder="选填" placeholder-class="ph" value="{{newAccount.nickname}}" data-key="nickname" bindinput="onAccountInput" />
+        </view>
+        <button class="btn-primary acc-add" loading="{{addingAccount}}" bindtap="onAddAccount">添加账号</button>
+      </view>
+
+      <view wx:if="{{loadingAccounts}}" class="empty card">加载中…</view>
+      <block wx:else>
+        <view class="a-card card" wx:for="{{accounts}}" wx:key="_id">
+          <view class="a-head">
+            <view class="a-info">
+              <view class="a-title ellipsis">{{item.username}}{{item.nickname ? '（' + item.nickname + '）' : ''}}</view>
+              <view class="a-sub">创建于 {{item.timeText}}</view>
+            </view>
+          </view>
+          <view class="a-actions">
+            <text class="a-btn danger" data-id="{{item._id}}" bindtap="onRemoveAccount">删除</text>
+          </view>
+        </view>
+        <view wx:if="{{!accounts.length}}" class="empty card">暂无账号，请在上方添加</view>
+      </block>
+    </block>
+
+    <!-- 帖子管理 -->
+    <block wx:elif="{{tab === 'posts'}}">
+      <view wx:if="{{loading}}" class="empty card">加载中…</view>
+      <block wx:else>
+        <view class="a-card card" wx:for="{{posts}}" wx:key="_id">
+          <view class="a-head">
+            <text class="a-emoji">{{item.kindEmoji}}</text>
+            <view class="a-info">
+              <view class="a-title ellipsis">{{item.title}}</view>
+              <view class="a-sub">{{item.petKind}}{{item.petBreed ? ' · ' + item.petBreed : ''}} · {{item.timeText}}{{item.demo ? ' · 示例' : ''}}</view>
+            </view>
+          </view>
+          <view class="a-actions">
+            <text class="a-btn danger" data-id="{{item._id}}" bindtap="onRemovePost">下架</text>
+          </view>
+        </view>
+        <view wx:if="{{!posts.length}}" class="empty card">暂无帖子</view>
+      </block>
+    </block>
+
+    <!-- 举报处理 -->
+    <block wx:elif="{{tab === 'reports'}}">
+      <view wx:if="{{loading}}" class="empty card">加载中…</view>
+      <block wx:else>
+        <view class="a-card card" wx:for="{{reports}}" wx:key="_id">
+          <view class="a-head">
+            <view class="a-info">
+              <view class="a-title ellipsis">{{item.type}}{{item.reason ? '：' + item.reason : ''}}</view>
+              <view class="a-sub">被举报帖：{{item.postTitle || '（已删除）'}} · {{item.timeText}}</view>
+            </view>
+            <text class="a-status {{item.status === 'handled' ? 'ok' : ''}}">{{item.statusText}}</text>
+          </view>
+          <view class="a-actions">
+            <text wx:if="{{item.postId}}" class="a-btn danger" data-postid="{{item.postId}}" bindtap="onRemoveReportedPost">下架帖子</text>
+            <text wx:if="{{item.status !== 'handled'}}" class="a-btn primary" data-id="{{item._id}}" bindtap="onHandleReport">标记已处理</text>
+          </view>
+        </view>
+        <view wx:if="{{!reports.length}}" class="empty card">暂无举报</view>
+      </block>
+    </block>
+
+    <!-- 数据概览 -->
+    <block wx:else>
+      <view wx:if="{{loadingStats}}" class="empty card">加载中…</view>
+      <block wx:else>
+        <view class="stats-grid card">
+          <view class="stat-cell">
+            <view class="stat-num">{{stats.users}}</view>
+            <view class="stat-label">用户</view>
+          </view>
+          <view class="stat-cell">
+            <view class="stat-num">{{stats.pets}}</view>
+            <view class="stat-label">宠物档案</view>
+          </view>
+          <view class="stat-cell">
+            <view class="stat-num">{{stats.records}}</view>
+            <view class="stat-label">问诊记录</view>
+          </view>
+          <view class="stat-cell">
+            <view class="stat-num">{{stats.posts}}</view>
+            <view class="stat-label">广场帖子</view>
+          </view>
+        </view>
+
+        <view class="sec-title">最近注册用户</view>
+        <view class="a-card card" wx:for="{{recentUsers}}" wx:key="_id">
+          <view class="a-head">
+            <view class="a-info">
+              <view class="a-title ellipsis">{{item.nickname || '未命名用户'}}</view>
+              <view class="a-sub">{{item.phone || '账号：' + (item.username || '—')}} · {{item.timeText}}</view>
+            </view>
+          </view>
+        </view>
+        <view wx:if="{{!recentUsers.length}}" class="empty card">暂无用户</view>
+      </block>
+    </block>
+
+    <button wx:if="{{isAdmin}}" class="logout" bindtap="onLogoutAdmin">退出管理员登录</button>
+  </block>
+</view>

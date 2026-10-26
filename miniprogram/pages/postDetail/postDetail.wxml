@@ -1,0 +1,86 @@
+<view class="page" wx:if="{{post}}">
+  <view class="head card">
+    <view class="h-title-line">
+      <view class="h-avatar">{{kindEmoji}}</view>
+      <view class="h-info">
+        <view class="h-meta">{{post.petKind}}{{breedText}}<text wx:if="{{post.part && post.part !== '其他'}}" class="part-tag">{{post.part}}</text></view>
+        <view class="h-time">{{timeText}}<text wx:if="{{post.demo}}"> · 示例案例</text></view>
+      </view>
+      <text wx:if="{{post.fromConsult}}" class="h-tag">来自在线问诊</text>
+    </view>
+    <view class="h-title">{{post.title}}</view>
+  </view>
+
+  <view class="body card">
+    <image
+      wx:if="{{post.image}}"
+      class="body-img"
+      src="{{post.image}}"
+      mode="aspectFill"
+      bindtap="onPreviewImage"
+    ></image>
+    <view class="body-text" user-select>{{post.excerpt}}</view>
+  </view>
+
+  <view class="actions-bar card">
+    <view class="act {{likedByMe ? 'liked' : ''}}" bindtap="onLike">
+      {{likedByMe ? '❤️' : '🤍'}} {{likeCount}}
+    </view>
+    <view class="act">💬 {{post.comments.length}}</view>
+    <view class="act" bindtap="onReport">🚩 举报</view>
+  </view>
+
+  <view class="comments card">
+    <view class="c-title">全部评论（{{post.comments.length}}）</view>
+    <view
+      wx:for="{{post.comments}}"
+      wx:key="createdAt"
+      class="c-item"
+      data-id="{{item.createdAt}}"
+      data-mine="{{item.mine ? '1' : '0'}}"
+      bindlongpress="onCommentLongPress"
+    >
+      <view class="c-head">
+        <text class="c-author">{{item.mine ? myName : '铲屎官'}}</text>
+        <text class="c-time">{{item.timeText}}</text>
+      </view>
+      <text class="c-content" user-select>{{item.content}}</text>
+    </view>
+    <view wx:if="{{!post.comments.length}}" class="c-empty">还没有评论，来说两句吧</view>
+  </view>
+
+  <view class="extra">
+    <button wx:if="{{mine && hasRecord}}" class="btn-plain" bindtap="onViewReport">📋 查看完整 AI 分诊报告</button>
+    <button wx:if="{{mine}}" class="btn-danger" bindtap="onDelete">删除该帖子</button>
+  </view>
+
+  <view class="disclaimer">案例内容已脱敏，仅供参考，不能替代执业兽医的现场诊断。</view>
+
+  <!-- 长按评论弹出的删除小框 -->
+  <view wx:if="{{delMenu.show}}" class="del-mask" catchtap="onCloseDelMenu"></view>
+  <view
+    wx:if="{{delMenu.show}}"
+    class="del-menu"
+    style="left: {{delMenu.x}}px; top: {{delMenu.y}}px;"
+    catchtap="noop"
+  >
+    <view class="dm-item" bindtap="onConfirmDelete">🗑 删除</view>
+  </view>
+
+  <view class="inputbar">
+    <input
+      class="msg-input"
+      value="{{commentText}}"
+      bindinput="onCommentInput"
+      bindconfirm="onCommentSend"
+      confirm-type="send"
+      placeholder="友善评论，共建互助社区…"
+      placeholder-class="ph"
+      adjust-position="{{true}}"
+      cursor-spacing="20"
+    />
+    <view class="send-btn {{commentText ? 'active' : ''}}" bindtap="onCommentSend">发送</view>
+  </view>
+</view>
+
+<view wx:else class="empty-page">加载中…</view>

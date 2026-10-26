@@ -1,73 +1,167 @@
-<view class="page">
-  <view class="head">
-    <view class="head-title">问诊广场</view>
-    <view class="head-sub">案例均已脱敏 · 分享经验，互帮互助</view>
-  </view>
-
-  <view wx:if="{{offline}}" class="offline-tip">📴 云端未连接，当前展示示例案例</view>
-
-  <view wx:if="{{loading}}" class="empty card">加载中…</view>
-  <view wx:elif="{{!posts.length}}" class="empty card">暂无案例，快来问诊分享吧</view>
-
-  <view wx:for="{{posts}}" wx:key="_id" class="post card">
+<!-- 帖子卡片模板：问诊大厅 / 精选好帖 / 官方好帖 共用 -->
+<template name="postCard">
+  <view
+    id="post-{{item._id}}"
+    class="post card {{item._id === highlightId ? 'highlight' : ''}} {{item.official ? 'official-post' : ''}} {{featured && index < 3 ? 'top' + (index + 1) : ''}}"
+    data-id="{{item._id}}"
+    bindtap="onPostTap"
+  >
+    <view wx:if="{{featured && index < 3}}" class="rank-badge">{{index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}}</view>
     <view class="p-head">
       <view class="p-avatar">{{item.kindEmoji}}</view>
       <view class="p-meta">
-        <view class="p-title ellipsis">{{item.title}}</view>
-        <view class="p-sub">{{item.petKind}}{{item.breedText}} · 铲屎官{{item.demo ? '（示例）' : ''}}</view>
+        <view class="p-title-row">
+          <text class="p-title ellipsis">{{item.title}}</text>
+          <text wx:if="{{item.mine}}" class="my-tag">我</text>
+          <text wx:if="{{item.official}}" class="official-badge">官方</text>
+        </view>
+        <view class="p-sub">
+          {{item.petKind}}{{item.breedText}}
+          <text wx:if="{{item.part && item.part !== '其他' && !item.official}}" class="part-tag">{{item.part}}</text>
+          <text wx:if="{{item.demo}}" class="demo-tag">示例</text>
+        </view>
       </view>
-      <text wx:if="{{item.fromConsult}}" class="p-tag">来自在线问诊</text>
+      <text wx:if="{{!featured && item.fromConsult}}" class="p-tag">来自在线问诊</text>
+      <text wx:if="{{featured}}" class="hot-tag">🔥 {{item.likeCount}}赞</text>
     </view>
 
     <view class="p-excerpt" user-select>{{item.excerpt}}</view>
 
+    <image
+      wx:if="{{item.image}}"
+      class="p-img"
+      src="{{item.image}}"
+      mode="aspectFill"
+      lazy-load
+    ></image>
+
     <view class="p-foot">
       <view class="p-time">{{item.timeText}}</view>
       <view class="p-actions">
-        <view class="p-act {{item.likedByMe ? 'liked' : ''}}" data-id="{{item._id}}" bindtap="onLike">
+        <view class="p-act {{item.likedByMe ? 'liked' : ''}}" data-id="{{item._id}}" catchtap="onLike">
           {{item.likedByMe ? '❤️' : '🤍'}} {{item.likeCount}}
         </view>
-        <view class="p-act" data-id="{{item._id}}" bindtap="onToggleComments">
-          💬 {{item.comments.length}}
-        </view>
+        <view class="p-act">💬 {{item.commentCount}}</view>
+        <view
+          wx:if="{{showFav && !item.mine && !item.official}}"
+          class="p-act fav {{item.fav ? 'fav-on' : ''}}"
+          data-id="{{item._id}}"
+          catchtap="onFav"
+        >{{item.fav ? '★' : '☆'}}</view>
+        <view wx:if="{{showMore && !item.mine}}" class="p-more" data-id="{{item._id}}" catchtap="onMore">⋯</view>
       </view>
     </view>
 
-    <!-- 评论区 -->
-    <view wx:if="{{expandedId === item._id}}" class="p-comments">
-      <view
-        wx:for="{{item.comments}}"
-        wx:for-item="c"
-        wx:key="createdAt"
-        class="c-item"
-        data-id="{{item._id}}"
-        data-index="{{index}}"
-        bindtap="onCommentTap"
-      >
-        <text class="c-author">{{c.mine ? c.author : '铲屎官'}}：</text>
-        <text class="c-content" user-select>{{c.content}}</text>
+    <!-- 帖子操作下拉菜单 -->
+    <view wx:if="{{showMore && menuId === item._id}}" class="more-menu" catchtap="noop">
+      <view class="mm-item" data-id="{{item._id}}" catchtap="onNotInterested">不感兴趣</view>
+      <view class="mm-item" data-id="{{item._id}}" catchtap="onReport">举报</view>
+    </view>
+  </view>
+</template>
+
+<view class="page">
+  <view class="head">
+    <view class="head-top">
+      <view class="tabs">
+        <view class="tab {{tab === 'hall' ? 'active' : ''}}" data-tab="hall" bindtap="onTab">问诊大厅</view>
+        <view class="tab {{tab === 'featured' ? 'active' : ''}}" data-tab="featured" bindtap="onTab">精选好帖</view>
+        <view class="tab {{tab === 'official' ? 'active' : ''}}" data-tab="official" bindtap="onTab">官方好帖</view>
       </view>
-      <view wx:if="{{!item.comments.length}}" class="c-empty">还没有评论，来说两句吧</view>
-      <view class="c-input-row">
-        <input
-          class="c-input"
-          value="{{commentText}}"
-          bindinput="onCommentInput"
-          confirm-type="send"
-          placeholder="友善评论，共建互助社区…"
-          placeholder-class="ph"
-          data-id="{{item._id}}"
-          bindconfirm="onCommentSend"
-        />
-        <view class="c-send" data-id="{{item._id}}" bindtap="onCommentSend">发送</view>
+      <view class="msg-entry" bindtap="onMessages">
+        <text>✉️</text>
+        <view wx:if="{{unread}}" class="msg-badge">{{unread > 99 ? '99+' : unread}}</view>
       </view>
     </view>
   </view>
 
-  <view class="disclaimer">案例内容仅供参考，不能替代执业兽医的现场诊断。</view>
+  <!-- ===== 问诊大厅 ===== -->
+  <block wx:if="{{tab === 'hall'}}">
+    <view wx:if="{{offline}}" class="offline-tip">📴 云端未连接，当前展示示例案例</view>
+
+    <view wx:if="{{loading}}" class="empty card">加载中…</view>
+    <view wx:elif="{{!posts.length}}" class="empty card">暂无案例，快来问诊分享吧</view>
+
+    <template
+      wx:for="{{posts}}"
+      wx:key="_id"
+      is="postCard"
+      data="{{item: item, menuId: menuId, highlightId: highlightId, showMore: true, showFav: true, featured: false, index: index}}"
+    ></template>
+
+    <view wx:if="{{loadingMore}}" class="load-more">加载中…</view>
+    <view wx:elif="{{!hasMore && posts.length}}" class="load-more">— 没有更多了 —</view>
+
+    <view class="disclaimer">案例内容仅供参考，不能替代执业兽医的现场诊断。</view>
+  </block>
+
+  <!-- ===== 精选好帖 ===== -->
+  <block wx:elif="{{tab === 'featured'}}">
+    <!-- 主视觉横幅：提示用户精选帖 = 点赞过百 -->
+    <view class="hero">
+      <view class="hero-deco d1"></view>
+      <view class="hero-deco d2"></view>
+      <view class="hero-deco d3"></view>
+      <view class="hero-icon">⭐</view>
+      <view class="hero-title">精选好帖</view>
+      <view class="hero-sub">点赞超过 100 的热门问诊案例 · 按热度排序</view>
+    </view>
+
+    <view wx:if="{{featuredLoading}}" class="empty card">加载中…</view>
+    <view wx:elif="{{!featuredPosts.length}}" class="empty card">还没有点赞过百的帖子，快去广场为优质案例点赞吧</view>
+
+    <template
+      wx:for="{{featuredPosts}}"
+      wx:key="_id"
+      is="postCard"
+      data="{{item: item, menuId: menuId, highlightId: highlightId, showMore: false, showFav: false, featured: true, index: index}}"
+    ></template>
+  </block>
+
+  <!-- ===== 官方好帖 ===== -->
+  <block wx:else>
+    <view wx:if="{{officialLoading}}" class="empty card">加载中…</view>
+    <view wx:elif="{{!officialPosts.length}}" class="empty card">暂无官方内容</view>
+
+    <template
+      wx:for="{{officialPosts}}"
+      wx:key="_id"
+      is="postCard"
+      data="{{item: item, menuId: menuId, highlightId: highlightId, showMore: false, showFav: false, featured: false, index: index}}"
+    ></template>
+
+    <view wx:if="{{officialPosts.length}}" class="load-more">— 官方好帖 · 宠物养护小知识 —</view>
+  </block>
+
+  <!-- 下拉菜单展开时的透明遮罩：点击任意处关闭 -->
+  <view wx:if="{{menuId}}" class="more-mask" catchtap="onCloseMenu"></view>
 
   <!-- 右下角发布按钮 -->
   <view class="fab" bindtap="onCreateTopic">
     <text class="fab-plus">＋</text>
+  </view>
+
+  <!-- 每日首次进入公告弹框（顶部下拉） -->
+  <view wx:if="{{showNotice}}" class="notice-mask" bindtap="onNoticeClose">
+    <view class="notice-sheet" catchtap="noop">
+      <view class="notice-head">
+        <text class="notice-title">📢 广场公告</text>
+        <text class="notice-x" bindtap="onNoticeClose">✕</text>
+      </view>
+      <view class="notice-body">
+        <view class="notice-line">欢迎来到问诊广场！为了营造良好的交流环境，请各位用户注意：</view>
+        <view class="notice-item">· 请勿发布广告、营销推广、拉群引流等无关内容；</view>
+        <view class="notice-item">· 请勿发布虚假、夸大或误导性信息；</view>
+        <view class="notice-item">· 请文明发言、友善交流，共同维护广场氛围。</view>
+        <view class="notice-warn">违规内容将被下架处理，情节严重的账号将被限制发布权限。感谢大家的理解与配合！</view>
+      </view>
+      <view class="notice-foot">
+        <view class="notice-check" bindtap="onNoticeToggle">
+          <view class="checkbox {{noticeDismiss ? 'checked' : ''}}">{{noticeDismiss ? '✓' : ''}}</view>
+          <text class="notice-check-text">一天内不再提醒</text>
+        </view>
+        <view class="notice-btn" bindtap="onNoticeClose">我知道了</view>
+      </view>
+    </view>
   </view>
 </view>

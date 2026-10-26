@@ -124,7 +124,7 @@
       </view>
     </view>
 
-    <view class="row column last">
+    <view class="row column">
       <text class="row-label">驱虫状态</text>
       <view class="chips">
         <view
@@ -136,10 +136,24 @@
         >{{item}}</view>
       </view>
     </view>
+
+    <view class="row column last">
+      <text class="row-label">疫苗接种</text>
+      <view class="chips">
+        <view
+          wx:for="{{vaccineOptions}}"
+          wx:key="*this"
+          class="chip {{vaccinated === item ? 'active' : ''}}"
+          data-val="{{item}}"
+          bindtap="onVaccinated"
+        >{{item}}</view>
+      </view>
+    </view>
   </view>
 
   <view class="actions">
     <button class="btn-primary" loading="{{saving}}" bindtap="onSave">保存</button>
+    <button wx:if="{{id}}" class="btn-plain add-remind" bindtap="onAddReminder">添加健康提醒</button>
     <button wx:if="{{id}}" class="btn-danger" bindtap="onDelete">删除该宠物</button>
   </view>
 </view>
