@@ -45,6 +45,49 @@ function genSmsCode() {
   return String(Math.floor(100000 + Math.random() * 900000))
 }
 
+// 健康提醒类型字典（与 cloudfunctions/reminder 的 TYPES 对应）
+const REMINDER_TYPES = [
+  { value: 'vaccine', label: '疫苗接种', emoji: '💉' },
+  { value: 'deworm_in', label: '体内驱虫', emoji: '🪱' },
+  { value: 'deworm_out', label: '体外驱虫', emoji: '🐛' },
+  { value: 'recheck', label: '复诊', emoji: '🏥' },
+  { value: 'medication', label: '用药', emoji: '💊' },
+  { value: 'custom', label: '自定义', emoji: '⏰' }
+]
+
+const REMINDER_REPEATS = [
+  { value: 'none', label: '不重复' },
+  { value: 'monthly', label: '每月' },
+  { value: 'quarterly', label: '每季度' },
+  { value: 'yearly', label: '每年' }
+]
+
+function reminderTypeMeta(value) {
+  return (
+    REMINDER_TYPES.find(t => t.value === value) || REMINDER_TYPES[REMINDER_TYPES.length - 1]
+  )
+}
+
+function reminderRepeatLabel(value) {
+  const r = REMINDER_REPEATS.find(t => t.value === value)
+  return r ? r.label : '不重复'
+}
+
+// 到期时间的人性化描述
+function reminderDueText(dueAt) {
+  if (!dueAt) return ''
+  const due = new Date(dueAt)
+  if (isNaN(due.getTime())) return formatDate(dueAt)
+  const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+  const now = new Date()
+  const diffDays = Math.round((startOfDay(due) - startOfDay(now)) / 86400000)
+  if (diffDays < 0) return `已过期${-diffDays}天`
+  if (diffDays === 0) return '今天到期'
+  if (diffDays === 1) return '明天到期'
+  if (diffDays <= 7) return `${diffDays}天后到期`
+  return formatDate(dueAt)
+}
+
 /**
  * 模拟影像分析（演示用）：根据用户文字与媒体类型生成“影像初析”描述。
  * 真实项目应接入图像识别大模型。
@@ -158,5 +201,10 @@ module.exports = {
   isValidPhone,
   calcAge,
   genSmsCode,
-  aiConsult
+  aiConsult,
+  REMINDER_TYPES,
+  REMINDER_REPEATS,
+  reminderTypeMeta,
+  reminderRepeatLabel,
+  reminderDueText
 }

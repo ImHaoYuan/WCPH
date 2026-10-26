@@ -1,0 +1,133 @@
+<view class="page">
+  <view class="form card">
+    <view class="form-title">问诊信息</view>
+
+    <view class="row column">
+      <text class="row-label">宠物类型 <text class="req">*</text></text>
+      <view class="chips">
+        <view
+          wx:for="{{kinds}}"
+          wx:key="*this"
+          class="chip {{kindIndex === index ? 'active' : ''}}"
+          data-key="kindIndex"
+          data-i="{{index}}"
+          bindtap="onPick"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <view class="row column">
+      <text class="row-label">患处部位 <text class="req">*</text></text>
+      <view class="chips">
+        <view
+          wx:for="{{parts}}"
+          wx:key="*this"
+          class="chip {{partIndex === index ? 'active' : ''}}"
+          data-key="partIndex"
+          data-i="{{index}}"
+          bindtap="onPick"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <view class="row column">
+      <text class="row-label">病程</text>
+      <view class="chips">
+        <view
+          wx:for="{{durations}}"
+          wx:key="*this"
+          class="chip {{durationIndex === index ? 'active' : ''}}"
+          data-key="durationIndex"
+          data-i="{{index}}"
+          bindtap="onPick"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <view class="row column">
+      <text class="row-label">是否瘙痒</text>
+      <view class="chips">
+        <view
+          wx:for="{{itchOptions}}"
+          wx:key="*this"
+          class="chip {{itchIndex === index ? 'active' : ''}}"
+          data-key="itchIndex"
+          data-i="{{index}}"
+          bindtap="onPick"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <view class="row column">
+      <text class="row-label">精神食欲</text>
+      <view class="chips">
+        <view
+          wx:for="{{appetiteOptions}}"
+          wx:key="*this"
+          class="chip {{appetiteIndex === index ? 'active' : ''}}"
+          data-key="appetiteIndex"
+          data-i="{{index}}"
+          bindtap="onPick"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <view class="row column last">
+      <text class="row-label">疫苗情况</text>
+      <view class="chips">
+        <view
+          wx:for="{{vaccineOptions}}"
+          wx:key="*this"
+          class="chip {{vaccineIndex === index ? 'active' : ''}}"
+          data-key="vaccineIndex"
+          data-i="{{index}}"
+          bindtap="onPick"
+        >{{item}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="form card">
+    <view class="form-title">患处照片</view>
+    <view class="shoot-tips">
+      <view class="st-item">☀️ 自然光下拍摄，避免使用闪光灯</view>
+      <view class="st-item">✋ 拨开毛发，对准患处</view>
+      <view class="st-item">📏 距离 15–30 厘米，保持画面清晰</view>
+    </view>
+    <view class="img-grid">
+      <view wx:for="{{images}}" wx:key="*this" class="img-item">
+        <image
+          class="img"
+          src="{{item}}"
+          mode="aspectFill"
+          data-urls="{{images}}"
+          data-cur="{{item}}"
+          bindtap="onPreviewImage"
+        ></image>
+        <view class="img-del" data-i="{{index}}" catchtap="onRemoveImage">✕</view>
+      </view>
+      <view wx:if="{{images.length < maxImages}}" class="img-add" bindtap="onChooseImage">
+        <text class="plus">＋</text>
+        <text class="add-label">拍照/相册</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="form card">
+    <view class="form-title">补充描述</view>
+    <textarea
+      class="desc"
+      placeholder="可补充说明发病经过、用药史等（选填）"
+      placeholder-class="ph"
+      value="{{desc}}"
+      bindinput="onDesc"
+      maxlength="300"
+    ></textarea>
+  </view>
+
+  <view class="tip">提交后将由 AI 结合宠物档案与照片生成分诊报告。报告仅供初步参考，不能替代执业兽医的现场诊断。</view>
+
+  <view class="actions">
+    <button class="btn-primary" loading="{{submitting}}" bindtap="onSubmit">提交问诊</button>
+  </view>
+</view>

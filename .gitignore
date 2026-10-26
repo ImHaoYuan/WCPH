@@ -16,3 +16,9 @@ node_modules/
 # 会话记忆与本地 skill 目录
 memory/
 .opencode/
+
+# 微信开发者工具个人配置（覆盖 project.config.json 的本机设置）
+project.private.config.json
+
+# 会话生成的临时图片
+vibe_images/

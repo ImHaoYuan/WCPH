@@ -1,15 +1,16 @@
 /**
  * 云开发调用封装：统一处理 callFunction 与错误提示
- * 依赖云函数：login / pet / record
+ * 依赖云函数：login / pet / record / assistant / square / reminder
  */
 
 function call(name, data) {
   return wx.cloud
-    .callFunction({ name, data })
+    .callFunction({ name, data, timeout: 60000 })
     .then(res => {
       const result = res && res.result
       if (result && result.ok === false) {
-        return Promise.reject(new Error(result.msg || '操作失败'))
+        const detail = result.detail ? `｜${result.detail}` : ''
+        return Promise.reject(new Error((result.msg || '操作失败') + detail))
       }
       return result ? result.data : null
     })
@@ -38,6 +39,8 @@ module.exports = {
   smsLogin: (phone, code) => call('login', { action: 'smsLogin', phone, code }),
   phoneLogin: cloudID => call('login', { action: 'phoneLogin', cloudID }),
   sendCode: phone => call('login', { action: 'sendCode', phone }),
+  updateProfile: (nickname, avatarUrl) =>
+    call('login', { action: 'updateProfile', nickname, avatarUrl }),
 
   // ===== 宠物 =====
   listPets: () => call('pet', { action: 'list' }),
@@ -52,11 +55,44 @@ module.exports = {
   getRecord: id => call('record', { action: 'get', id }),
   addRecord: record => call('record', { action: 'add', record }),
   updateRecord: (id, record) => call('record', { action: 'update', id, record }),
+  renameRecord: (id, title) => call('record', { action: 'rename', id, title }),
+  markRecordPublished: (id, squarePostId) =>
+    call('record', { action: 'markPublished', id, squarePostId }),
   deleteRecord: id => call('record', { action: 'remove', id }),
 
+  // ===== AI 问诊助手 =====
+  assistantAsk: (question, petProfile, fileIDs) =>
+    call('assistant', { question, petProfile, fileIDs }),
+
   // ===== 问诊广场 =====
-  squareList: () => call('square', { action: 'list' }),
+  squareList: page => call('square', { action: 'list', page }),
+  squareFeatured: () => call('square', { action: 'featured' }),
+  squareGet: id => call('square', { action: 'get', id }),
+  squareMine: () => call('square', { action: 'mylist' }),
+  squareFavlist: ids => call('square', { action: 'favlist', ids }),
   squareLike: id => call('square', { action: 'like', id }),
   squareComment: (id, content) => call('square', { action: 'comment', id, content }),
-  squarePublish: post => call('square', { action: 'publish', post })
+  squareDeleteComment: (id, commentId) => call('square', { action: 'deleteComment', id, commentId }),
+  squarePublish: post => call('square', { action: 'publish', post }),
+  squareRemove: id => call('square', { action: 'remove', id }),
+  squareReport: (id, type, reason, commentId) =>
+    call('square', { action: 'report', id, type, reason, commentId }),
+  squareAmIAdmin: () => call('square', { action: 'amIAdmin' }),
+  squareAdminPosts: () => call('square', { action: 'adminPosts' }),
+  squareAdminRemove: id => call('square', { action: 'adminRemove', id }),
+  squareAdminReports: () => call('square', { action: 'adminReports' }),
+  squareAdminHandleReport: id => call('square', { action: 'adminHandleReport', id }),
+  squareNotifications: () => call('square', { action: 'notifications' }),
+  squareReadNotifications: ids => call('square', { action: 'readNotifications', ids }),
+  squareUnread: () => call('square', { action: 'unread' }),
+
+  // ===== 健康提醒 =====
+  listReminders: () => call('reminder', { action: 'list' }),
+  getReminder: id => call('reminder', { action: 'get', id }),
+  addReminder: reminder => call('reminder', { action: 'add', reminder }),
+  updateReminder: (id, reminder) => call('reminder', { action: 'update', id, reminder }),
+  completeReminder: id => call('reminder', { action: 'complete', id }),
+  skipReminder: id => call('reminder', { action: 'skip', id }),
+  reopenReminder: id => call('reminder', { action: 'reopen', id }),
+  deleteReminder: id => call('reminder', { action: 'remove', id })
 }

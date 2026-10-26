@@ -1,0 +1,71 @@
+.page {
+  min-height: 100vh;
+  padding: 24rpx 24rpx calc(40rpx + env(safe-area-inset-bottom));
+}
+
+.msg {
+  display: flex;
+  align-items: flex-start;
+  padding: 26rpx 28rpx;
+  margin-top: 24rpx;
+}
+
+.msg.unread {
+  border: 2rpx solid var(--primary-light);
+}
+
+.m-icon {
+  width: 88rpx;
+  height: 88rpx;
+  flex: 0 0 88rpx;
+  border-radius: 24rpx;
+  background: var(--primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42rpx;
+}
+
+.m-body {
+  flex: 1;
+  min-width: 0;
+  margin-left: 22rpx;
+}
+
+.m-title-line {
+  display: flex;
+  align-items: center;
+}
+
+.m-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.m-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: var(--danger);
+  margin-left: 14rpx;
+  flex: 0 0 16rpx;
+}
+
+.m-post {
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  color: var(--primary);
+}
+
+.m-content {
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: var(--text-sub);
+}
+
+.m-time {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: var(--text-light);
+}

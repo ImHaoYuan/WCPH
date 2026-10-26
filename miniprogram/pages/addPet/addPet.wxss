@@ -214,6 +214,10 @@
   padding: 0 8rpx;
 }
 
+.add-remind {
+  margin-top: 24rpx;
+}
+
 .btn-danger {
   margin-top: 24rpx;
   background: #fff;

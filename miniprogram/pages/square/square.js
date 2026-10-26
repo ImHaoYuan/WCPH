@@ -2,50 +2,10 @@ const cloud = require('../../utils/cloud')
 const util = require('../../utils/util')
 
 const KIND_EMOJI = { 猫: '🐱', 狗: '🐶', 兔: '🐰', 鸟: '🐦', 仓鼠: '🐹', 乌龟: '🐢' }
-
-// 点赞/评论本地持久化：云端不可用（示例模式）或同步失败时，交互数据保存在本地存储
-const INTERACT_KEY = 'square_interactions_v1'
-
-function loadInteractions() {
-  try {
-    const map = wx.getStorageSync(INTERACT_KEY) || {}
-    // 迁移：旧版本保存的评论缺少 mine/author 标记（本地存储中的评论均为本人发表），统一补上
-    let changed = false
-    Object.keys(map).forEach(pid => {
-      const cs = map[pid] && map[pid].comments
-      if (!cs || !cs.length) return
-      cs.forEach(c => {
-        if (!c.mine) {
-          c.mine = true
-          const info = getApp().globalData.userInfo || {}
-          c.author = info.nickname || '我'
-          changed = true
-        }
-      })
-    })
-    if (changed) {
-      try {
-        wx.setStorageSync(INTERACT_KEY, map)
-      } catch (e) {}
-    }
-    return map
-  } catch (e) {
-    return {}
-  }
-}
-
-function saveInteractions(map) {
-  try {
-    wx.setStorageSync(INTERACT_KEY, map)
-  } catch (e) {}
-}
-
-// 清理空条目：无点赞覆盖且无本地评论时删除该帖记录
-function pruneInteractions(map, id) {
-  const ov = map[id]
-  if (!ov) return
-  if (typeof ov.liked !== 'boolean' && !(ov.comments && ov.comments.length)) delete map[id]
-}
+const REPORT_TYPES = ['广告营销', '辱骂攻击', '虚假信息', '虐宠内容', '其他']
+// 收藏 id 列表 + 帖子快照（快照用于「我的收藏」在云端不可用时兜底展示）
+const FAV_KEY = 'square_favs_v1'
+const FAV_POSTS_KEY = 'square_fav_posts_v1'
 
 // 云端不可用（如未部署 square 云函数）时的本地示例案例（已脱敏）
 const FALLBACK_POSTS = [
@@ -53,8 +13,10 @@ const FALLBACK_POSTS = [
     _id: 'demo1',
     petKind: '猫',
     petBreed: '布偶猫',
+    part: '其他',
     title: '布偶猫呕吐怎么办',
     excerpt: '3个月布偶猫，昨晚吐了两次未消化的猫粮，精神食欲还正常，需要马上就医吗？',
+    image: '',
     likes: [],
     comments: [
       { content: '少食多餐观察一下，精神好一般问题不大', createdAt: 1730000000000 },
@@ -67,8 +29,10 @@ const FALLBACK_POSTS = [
     _id: 'demo2',
     petKind: '狗',
     petBreed: '金毛',
+    part: '粪便',
     title: '狗狗拉稀带血丝',
     excerpt: '金毛昨晚偷吃了半根火腿肠，今天拉稀带少量血丝，活泼能吃，急！',
+    image: '',
     likes: [],
     comments: [{ content: '便血别拖，建议做个细小检测', createdAt: 1730002000000 }],
     demo: true,
@@ -78,8 +42,10 @@ const FALLBACK_POSTS = [
     _id: 'demo3',
     petKind: '猫',
     petBreed: '英短',
+    part: '耳朵',
     title: '猫咪频繁挠耳朵',
     excerpt: '英短最近老挠耳朵，耳朵里有很多黑褐色耳垢，是耳螨吗？',
+    image: '',
     likes: [],
     comments: [
       { content: '像耳螨，用洁耳液+驱虫药，坚持两周', createdAt: 1730003000000 },
@@ -96,56 +62,267 @@ Page({
     loading: true,
     openId: '',
     offline: false,
-    // 当前展开评论的帖子 id
-    expandedId: '',
-    commentText: ''
+    page: 0,
+    hasMore: true,
+    loadingMore: false,
+    // 「不感兴趣」：本地隐藏的帖子 id 列表 + 当前展开下拉菜单的帖子 id
+    hiddenIds: [],
+    menuId: '',
+    // 收藏的帖子 id 列表（本地持久化）
+    favIds: [],
+    // 未读消息数（信封角标）
+    unread: 0
   },
 
   onShow() {
-    this.setData({ openId: getApp().globalData.openid || '' })
-    this.load()
+    this.setData({
+      openId: getApp().globalData.openid || '',
+      hiddenIds: this.loadHiddenIds(),
+      favIds: this.loadFavIds(),
+      menuId: ''
+    })
+    this.refresh()
+    this.loadUnread()
+  },
+
+  loadUnread() {
+    cloud
+      .squareUnread()
+      .then(res => {
+        this.setData({ unread: (res && res.unread) || 0 })
+      })
+      .catch(() => {})
+  },
+
+  onMessages() {
+    wx.navigateTo({ url: '/pages/messages/messages' })
   },
 
   onPullDownRefresh() {
-    this.load().then(() => wx.stopPullDownRefresh())
+    this.refresh().then(() => wx.stopPullDownRefresh())
   },
 
-  load() {
+  onReachBottom() {
+    if (this.data.offline || this.data.loadingMore || !this.data.hasMore) return
+    this.load(this.data.page + 1, true)
+  },
+
+  refresh() {
+    this.setData({ page: 0, hasMore: true })
+    return this.load(0)
+  },
+
+  load(page, append) {
+    this.setData(append ? { loadingMore: true } : { loading: true })
     return cloud
-      .squareList()
-      .then(list => {
-        this.setData({ offline: false })
-        this.applyPosts(list || [])
+      .squareList(page)
+      .then(res => {
+        const raw = (res && res.list) || []
+        const decorated = this.applyPosts(this.filterHidden(raw))
+        this.setData({
+          offline: false,
+          posts: append ? this.data.posts.concat(decorated) : decorated,
+          page,
+          hasMore: !!(res && res.hasMore),
+          loading: false,
+          loadingMore: false
+        })
       })
       .catch(err => {
         // 云函数未部署/网络异常时静默降级为本地示例，不弹报错
         console.warn('[square] 云端不可用，使用本地示例数据', err && err.message)
-        this.setData({ offline: true })
-        this.applyPosts(FALLBACK_POSTS)
+        this.setData({
+          offline: true,
+          hasMore: false,
+          loading: false,
+          loadingMore: false,
+          posts: append ? this.data.posts : this.applyPosts(this.filterHidden(FALLBACK_POSTS))
+        })
       })
   },
 
+  // ===== 「不感兴趣」隐藏 =====
+  loadHiddenIds() {
+    try {
+      const v = wx.getStorageSync('square_hidden_v1')
+      return Array.isArray(v) ? v : []
+    } catch (e) {
+      return []
+    }
+  },
+
+  saveHiddenIds(ids) {
+    try {
+      wx.setStorageSync('square_hidden_v1', ids.slice(0, 200))
+    } catch (e) {}
+  },
+
+  filterHidden(list) {
+    const hidden = this.data.hiddenIds
+    return hidden.length ? list.filter(p => hidden.indexOf(p._id) < 0) : list
+  },
+
+  // ===== 收藏 =====
+  loadFavIds() {
+    try {
+      const v = wx.getStorageSync(FAV_KEY)
+      return Array.isArray(v) ? v : []
+    } catch (e) {
+      return []
+    }
+  },
+
+  saveFavIds(ids) {
+    try {
+      wx.setStorageSync(FAV_KEY, ids.slice(0, 200))
+    } catch (e) {}
+  },
+
+  // 保存/删除收藏帖子的本地快照
+  saveFavSnap(id, post) {
+    try {
+      const map = wx.getStorageSync(FAV_POSTS_KEY) || {}
+      map[id] = {
+        _id: id,
+        petKind: post.petKind,
+        petBreed: post.petBreed,
+        part: post.part,
+        title: post.title,
+        excerpt: post.excerpt,
+        image: post.image,
+        createdAt: post.createdAt,
+        demo: !!post.demo,
+        fromConsult: !!post.fromConsult,
+        likeCount: post.likeCount,
+        commentCount: post.commentCount
+      }
+      wx.setStorageSync(FAV_POSTS_KEY, map)
+    } catch (e) {}
+  },
+
+  removeFavSnap(id) {
+    try {
+      const map = wx.getStorageSync(FAV_POSTS_KEY) || {}
+      delete map[id]
+      wx.setStorageSync(FAV_POSTS_KEY, map)
+    } catch (e) {}
+  },
+
+  // 收藏/取消收藏：空心星 ↔ 实心黄星
+  onFav(e) {
+    if (!getApp().requireLogin()) return
+    const id = e.currentTarget.dataset.id
+    const post = this.data.posts.find(p => p._id === id)
+    const favIds = this.data.favIds.slice()
+    const idx = favIds.indexOf(id)
+    let fav = false
+    if (idx >= 0) {
+      favIds.splice(idx, 1)
+      this.removeFavSnap(id)
+      wx.showToast({ title: '已取消收藏', icon: 'none' })
+    } else {
+      favIds.push(id)
+      fav = true
+      if (post) this.saveFavSnap(id, post)
+      wx.showToast({ title: '收藏成功', icon: 'none' })
+    }
+    this.saveFavIds(favIds)
+    this.setData({
+      favIds,
+      posts: this.data.posts.map(p => (p._id === id ? Object.assign({}, p, { fav }) : p))
+    })
+  },
+
+  // 精选好帖入口
+  onFeatured() {
+    wx.navigateTo({ url: '/pages/featured/featured' })
+  },
+
+  noop() {},
+
+  onMore(e) {
+    const id = e.currentTarget.dataset.id
+    this.setData({ menuId: this.data.menuId === id ? '' : id })
+  },
+
+  onCloseMenu() {
+    this.setData({ menuId: '' })
+  },
+
+  onNotInterested(e) {
+    const id = e.currentTarget.dataset.id
+    this.setData({ menuId: '' })
+    wx.showModal({
+      title: '提示',
+      content: '将不显示该帖子',
+      confirmText: '是',
+      cancelText: '否',
+      success: res => {
+        if (res.confirm) this.hidePost(id, '已去除，将不再显示')
+      }
+    })
+  },
+
+  // 举报：与帖子详情页一致（选类型 → 补充说明 → 提交云端），成功后同样从自己的列表去除
+  onReport(e) {
+    const id = e.currentTarget.dataset.id
+    this.setData({ menuId: '' })
+    if (!getApp().requireLogin()) return
+    wx.showActionSheet({
+      itemList: REPORT_TYPES,
+      success: res => {
+        const type = REPORT_TYPES[res.tapIndex]
+        wx.showModal({
+          title: '举报该帖子',
+          content: '举报类型：' + type,
+          editable: true,
+          placeholderText: '可补充说明举报原因（选填）',
+          success: r => {
+            if (!r.confirm) return
+            wx.showLoading({ title: '提交中', mask: true })
+            cloud
+              .squareReport(id, type, r.content || '')
+              .then(() => {
+                wx.hideLoading()
+                this.hidePost(id, '举报成功，已从列表中去除')
+              })
+              .catch(err => {
+                wx.hideLoading()
+                cloud.toastError(err)
+              })
+          }
+        })
+      }
+    })
+  },
+
+  // 从列表移除并持久化，保证之后刷新/翻页都不再出现
+  hidePost(id, toastText) {
+    const hiddenIds = this.data.hiddenIds.concat([id])
+    this.setData({
+      hiddenIds,
+      posts: this.data.posts.filter(p => p._id !== id)
+    })
+    this.saveHiddenIds(hiddenIds)
+    wx.showToast({ title: toastText, icon: 'none' })
+  },
+
   applyPosts(list) {
-    const interactions = loadInteractions()
-    const posts = list.map(p => {
-      const ov = interactions[p._id] || {}
-      const baseLikes = (p.likes || []).length
-      const baseLiked = (p.likes || []).indexOf(this.data.openId) >= 0
-      // 本地点赞覆盖云端/示例基准状态
-      const likedByMe = typeof ov.liked === 'boolean' ? ov.liked : baseLiked
-      const likeDelta = (likedByMe && !baseLiked ? 1 : 0) + (!likedByMe && baseLiked ? -1 : 0)
-      // 本地新增评论追加到已有评论之后
-      const comments = (p.comments || []).concat(ov.comments || [])
-      return Object.assign({}, p, {
+    const openid = this.data.openId
+    const favIds = this.data.favIds
+    return list.map(p =>
+      Object.assign({}, p, {
         kindEmoji: KIND_EMOJI[p.petKind] || '🐾',
         breedText: p.petBreed ? ' · ' + p.petBreed : '',
         timeText: util.formatDateTime(p.createdAt),
-        likeCount: baseLikes + likeDelta,
-        likedByMe,
-        comments
+        likeCount: (p.likes || []).length,
+        likedByMe: (p.likes || []).indexOf(openid) >= 0,
+        commentCount: (p.comments || []).length,
+        // 优先用服务端标记（不依赖本地登录态），旧版云函数未返回时按本地 openid 兜底
+        mine: p.mine !== undefined ? p.mine : p._openid === openid,
+        fav: favIds.indexOf(p._id) >= 0
       })
-    })
-    this.setData({ posts, loading: false })
+    )
   },
 
   onLike(e) {
@@ -161,111 +338,19 @@ Page({
       })
     })
     this.setData({ posts })
-    // 持久化本地点赞状态
-    const interactions = loadInteractions()
-    const ov = (interactions[id] = interactions[id] || {})
-    ov.liked = newLiked
-    pruneInteractions(interactions, id)
-    saveInteractions(interactions)
-    // 云端同步：成功后清除本地覆盖（服务端已有该状态），失败保持本地状态
-    cloud
-      .squareLike(id)
-      .then(() => {
-        const cur = loadInteractions()
-        if (cur[id]) {
-          delete cur[id].liked
-          pruneInteractions(cur, id)
-          saveInteractions(cur)
-        }
-      })
-      .catch(err => console.warn('[square] like sync failed', err))
-  },
-
-  onToggleComments(e) {
-    const id = e.currentTarget.dataset.id
-    this.setData({
-      expandedId: this.data.expandedId === id ? '' : id,
-      commentText: ''
+    cloud.squareLike(id).catch(() => {
+      console.warn('[square] like sync failed')
+      this.refresh()
     })
   },
 
-  onCommentInput(e) {
-    this.setData({ commentText: e.detail.value })
+  onPostTap(e) {
+    wx.navigateTo({ url: '/pages/postDetail/postDetail?id=' + e.currentTarget.dataset.id })
   },
 
-  // 当前登录用户的昵称
-  getMyName() {
-    const info = getApp().globalData.userInfo || {}
-    return info.nickname || '我'
-  },
-
-  onCommentSend(e) {
+  // 右下角 + ：发布求助话题
+  onCreateTopic() {
     if (!getApp().requireLogin()) return
-    const id = e.currentTarget.dataset.id
-    const content = (this.data.commentText || '').trim()
-    if (!content) {
-      wx.showToast({ title: '请输入评论内容', icon: 'none' })
-      return
-    }
-    const comment = { content, createdAt: Date.now(), mine: true, author: this.getMyName() }
-    const posts = this.data.posts.map(p =>
-      p._id === id ? Object.assign({}, p, { comments: p.comments.concat(comment) }) : p
-    )
-    this.setData({ posts, commentText: '' })
-    wx.showToast({ title: '评论成功', icon: 'none' })
-    // 持久化本地评论
-    const interactions = loadInteractions()
-    const ov = (interactions[id] = interactions[id] || {})
-    ov.comments = (ov.comments || []).concat(comment)
-    saveInteractions(interactions)
-    // 云端同步：成功后从本地移除该条（服务端已有），失败保持本地状态
-    cloud
-      .squareComment(id, content)
-      .then(() => {
-        const cur = loadInteractions()
-        if (cur[id] && cur[id].comments) {
-          cur[id].comments = cur[id].comments.filter(c => c.createdAt !== comment.createdAt)
-          pruneInteractions(cur, id)
-          saveInteractions(cur)
-        }
-      })
-      .catch(err => console.warn('[square] comment sync failed', err))
-  },
-
-  // 点击自己的评论：弹窗确认后删除
-  onCommentTap(e) {
-    const id = e.currentTarget.dataset.id
-    const index = e.currentTarget.dataset.index
-    const post = this.data.posts.find(p => p._id === id)
-    const comment = post && post.comments[index]
-    if (!comment || !comment.mine) return
-    wx.showModal({
-      title: '删除评论',
-      content: '是否删除该评论？',
-      confirmText: '是',
-      cancelText: '否',
-      success: res => {
-        if (!res.confirm) return
-        this.removeComment(id, comment)
-      }
-    })
-  },
-
-  removeComment(id, comment) {
-    const posts = this.data.posts.map(p =>
-      p._id === id
-        ? Object.assign({}, p, { comments: p.comments.filter(c => c.createdAt !== comment.createdAt) })
-        : p
-    )
-    this.setData({ posts })
-    // 同步移除本地持久化的评论
-    const interactions = loadInteractions()
-    if (interactions[id] && interactions[id].comments) {
-      interactions[id].comments = interactions[id].comments.filter(
-        c => c.createdAt !== comment.createdAt
-      )
-      pruneInteractions(interactions, id)
-      saveInteractions(interactions)
-    }
+    wx.navigateTo({ url: '/pages/topic/topic' })
   }
 })

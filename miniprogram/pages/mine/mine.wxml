@@ -60,6 +60,37 @@
     <view wx:else class="empty" bindtap="onAddPet">还没有添加宠物，点击这里去添加吧～</view>
   </view>
 
+  <!-- 附近宠物医院 -->
+  <view class="hosp-entry card" bindtap="onHospitals">
+    <view class="he-icon">🏥</view>
+    <view class="he-body">
+      <view class="he-title">附近宠物医院</view>
+      <view class="he-sub">按距离排序 · 支持一键拨号与导航</view>
+    </view>
+    <text class="he-arrow">›</text>
+  </view>
+
+  <!-- 健康计划 -->
+  <view class="section">
+    <view class="sec-head">
+      <text class="sec-title">健康计划</text>
+      <text wx:if="{{logged}}" class="sec-more" bindtap="onRemindersTap">全部 ›</text>
+    </view>
+
+    <view wx:if="{{!logged}}" class="empty card">登录后管理健康计划</view>
+    <block wx:elif="{{reminders.length}}">
+      <view class="rem-card card" wx:for="{{reminders}}" wx:key="_id" data-id="{{item._id}}" bindtap="onReminderTap">
+        <view class="rem-emoji">{{item.typeEmoji}}</view>
+        <view class="rem-info">
+          <view class="rem-title ellipsis">{{item.title}}</view>
+          <view class="rem-sub ellipsis">{{item.petName ? item.petName + ' · ' : ''}}{{item.typeLabel}}</view>
+        </view>
+        <view class="rem-due {{item.status === 'expired' ? 'danger' : ''}}">{{item.dueText}}</view>
+      </view>
+    </block>
+    <view wx:else class="empty card" bindtap="onRemindersTap">暂无健康计划，点击新建提醒</view>
+  </view>
+
   <!-- 问诊记录 -->
   <view class="section">
     <view class="sec-head">
@@ -73,6 +104,7 @@
         <view class="r-info">
           <view class="r-title-line">
             <text class="r-title ellipsis">{{item.petName || item.title || '问诊记录'}}</text>
+            <text wx:if="{{item.published}}" class="r-badge">已发布</text>
             <text wx:if="{{item.firstQuestion}}" class="r-question">{{item.firstQuestion}}</text>
           </view>
           <view class="r-desc">{{item.timeText}}</view>
@@ -81,6 +113,65 @@
       </view>
     </block>
     <view wx:else class="empty card">暂无问诊记录</view>
+  </view>
+
+  <!-- 我的发布 -->
+  <view class="section">
+    <view class="sec-head">
+      <text class="sec-title">我的发布</text>
+      <text wx:if="{{logged && myPosts.length}}" class="sec-more" bindtap="onSquareTap">去广场 ›</text>
+    </view>
+
+    <view wx:if="{{!logged}}" class="empty card">登录后查看我的发布</view>
+    <block wx:elif="{{myPosts.length}}">
+      <view class="rec-card card" wx:for="{{myPosts}}" wx:key="_id" data-id="{{item._id}}" bindtap="onMyPostTap">
+        <view class="r-avatar">{{item.petKind === '猫' ? '🐱' : item.petKind === '狗' ? '🐶' : '🐾'}}</view>
+        <view class="r-info">
+          <view class="r-title-line">
+            <text class="r-title ellipsis">{{item.title}}</text>
+          </view>
+          <view class="r-desc">{{item.petKind}}{{item.petBreed ? ' · ' + item.petBreed : ''}} · {{item.timeText}}</view>
+        </view>
+        <text class="del-link" data-id="{{item._id}}" catchtap="onMyPostDelete">删除</text>
+      </view>
+    </block>
+    <view wx:else class="empty card">还没有发布过内容</view>
+  </view>
+
+  <!-- 我的收藏 -->
+  <view class="section">
+    <view class="sec-head">
+      <text class="sec-title">我的收藏</text>
+    </view>
+
+    <view wx:if="{{!logged}}" class="empty card">登录后查看收藏</view>
+    <block wx:elif="{{favPosts.length}}">
+      <view class="rec-card card" wx:for="{{favPosts}}" wx:key="_id" data-id="{{item._id}}" bindtap="onFavPostTap">
+        <view class="r-avatar">{{item.kindEmoji}}</view>
+        <view class="r-info">
+          <view class="r-title-line">
+            <text class="r-title ellipsis">{{item.title}}</text>
+          </view>
+          <view class="r-desc">{{item.petKind}}{{item.breedText}} · {{item.timeText}}</view>
+        </view>
+        <text class="del-link" data-id="{{item._id}}" catchtap="onFavPostRemove">取消收藏</text>
+      </view>
+    </block>
+    <view wx:else class="empty card">还没有收藏的帖子，去广场点 ☆ 收藏吧</view>
+  </view>
+
+  <!-- 菜单 -->
+  <view wx:if="{{logged}}" class="menu card">
+    <view wx:if="{{isAdmin}}" class="menu-item" bindtap="onAdminTap">
+      <text class="mi-icon">🛡️</text>
+      <text class="mi-label">管理员后台</text>
+      <text class="mi-arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="onSettingsTap">
+      <text class="mi-icon">⚙️</text>
+      <text class="mi-label">设置与协议</text>
+      <text class="mi-arrow">›</text>
+    </view>
   </view>
 
   <button wx:if="{{logged}}" class="logout" bindtap="onLogout">退出登录</button>

@@ -137,19 +137,48 @@ Page({
             return
           }
           wx.showActionSheet({
-            itemList: ['上传图片', '上传视频'],
-            success: s => (s.tapIndex === 0 ? this.addMoreImages(draft) : this.addMoreVideo(draft))
+            itemList: ['拍照', '上传图片', '上传视频'],
+            success: s => this.onPickMedia(s.tapIndex, draft)
           })
         }
       })
       return
     }
     wx.showActionSheet({
-      itemList: ['上传图片', '上传视频'],
+      itemList: ['拍照', '上传图片', '上传视频'],
       success: s => {
         const draft = { images: [], video: '' }
-        if (s.tapIndex === 0) this.addMoreImages(draft)
-        else this.addMoreVideo(draft)
+        this.onPickMedia(s.tapIndex, draft)
+      }
+    })
+  },
+
+  onPickMedia(tapIndex, draft) {
+    if (tapIndex === 0) this.shootNow(draft)
+    else if (tapIndex === 1) this.addMoreImages(draft)
+    else this.addMoreVideo(draft)
+  },
+
+  // 直接调起相机拍照，跳过相册选择（真机可用，模拟器无摄像头）
+  shootNow(draft) {
+    const remain = 3 - (draft.images || []).length
+    if (remain <= 0) {
+      wx.showToast({ title: '图片最多3张', icon: 'none' })
+      return
+    }
+    wx.chooseMedia({
+      count: remain,
+      mediaType: ['image'],
+      sizeType: ['compressed'],
+      sourceType: ['camera'],
+      camera: 'back',
+      success: res => {
+        const files = res.tempFiles || []
+        if (files.length) this.uploadAppend(files, draft)
+      },
+      fail: err => {
+        if (err && /cancel/.test(err.errMsg || '')) return
+        wx.showToast({ title: '无法调起相机，请改用上传图片', icon: 'none' })
       }
     })
   },
@@ -231,6 +260,12 @@ Page({
   onTextConsult() {
     if (!getApp().requireLogin()) return
     wx.navigateTo({ url: '/pages/chat/chat' })
+  },
+
+  // 结构化症状问诊：部位/病程表单 + 拍照 → AI 分诊报告
+  onSymptomForm() {
+    if (!getApp().requireLogin()) return
+    wx.navigateTo({ url: '/pages/consultForm/consultForm' })
   },
 
   // 宠物急救指南（离线版）

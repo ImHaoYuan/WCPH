@@ -3,8 +3,12 @@
   <view class="navbar" style="padding-top: {{statusBarHeight}}px;">
     <view class="nav-inner">
       <view class="nav-back" bindtap="onBack">‹</view>
-      <text class="nav-title">AI问诊</text>
-      <view class="nav-holder"></view>
+      <text class="nav-title ellipsis">{{sessionTitle || 'AI问诊'}}</text>
+      <view class="nav-actions">
+        <view class="nav-act" bindtap="onOpenPicker">📁</view>
+        <view class="nav-act" bindtap="onRenameSession">✏️</view>
+        <view class="nav-act" bindtap="onPublishSession">📤</view>
+      </view>
     </view>
   </view>
 
@@ -22,7 +26,7 @@
             <view class="pc-name ellipsis">{{currentPet.name}}</view>
             <view class="pc-sub ellipsis">{{currentPet.category || '—'}}{{currentPet.breed ? ' · ' + currentPet.breed : ''}}</view>
           </view>
-          <text wx:if="{{savedId}}" class="saved-tag">已存记录</text>
+          <text wx:if="{{sessionId}}" class="saved-tag">{{published ? '已发布' : '已存记录'}}</text>
         </view>
         <view class="pc-stats">
           <view class="pc-stat">
@@ -47,8 +51,10 @@
     </view>
 
     <view wx:else class="topbar-empty">
-      <text class="empty-text">还没有宠物，问诊前请先添加宠物信息</text>
-      <text class="add-link" bindtap="onAddPet">去添加</text>
+      <text class="empty-text">{{petLoadError ? '宠物加载失败，请检查网络后重试' : '还没有宠物，问诊前请先添加宠物信息'}}</text>
+      <text wx:if="{{petLoadError}}" class="add-link" bindtap="onRetryPets">点击重试</text>
+      <text wx:else class="add-link" bindtap="onAddPet">去添加</text>
+      <text class="debug-info">debug: pets={{pets.length}} state={{loadState}}</text>
     </view>
   </view>
 
@@ -62,6 +68,7 @@
           <view class="urgency-head">
             <text class="urgency-icon">{{item.level === 'red' ? '🚨' : item.level === 'yellow' ? '⚠️' : '🌿'}}</text>
             <text class="urgency-label">{{item.level === 'red' ? '紧急 · 建议立刻送医' : item.level === 'yellow' ? '关注 · 建议观察' : '轻症 · 居家护理'}}</text>
+            <text wx:if="{{item.level === 'red'}}" class="urgency-hosp" bindtap="onNearbyHospitals">🏥 附近医院</text>
           </view>
           <view wx:if="{{item.level === 'red'}}" class="urgency-call" bindtap="onCallHospital">
             <text class="call-icon">📞</text>
@@ -117,8 +124,39 @@
     <view class="attach-add" bindtap="onAddMore">＋</view>
   </view>
 
+  <!-- 快捷提问 -->
+  <scroll-view wx:if="{{messages.length <= 1}}" class="quick-bar" scroll-x enhanced show-scrollbar="{{false}}">
+    <view wx:for="{{quickQuestions}}" wx:key="*this" class="quick-chip" bindtap="onQuickQuestion" data-q="{{item}}">{{item}}</view>
+  </scroll-view>
+
+  <!-- 拍摄提示 -->
+  <view wx:if="{{messages.length <= 1 && !pendingImages.length}}" class="shoot-tip">📷 拍摄建议：自然光下对准患处，距离 15–30 厘米，关闭美颜滤镜</view>
+
+  <!-- 会话选择：新建档案袋 或 继续历史问诊 -->
+  <view wx:if="{{showSessionPicker}}" class="sheet-mask" catchtap="onClosePicker">
+    <view class="sheet" catchtap="noop">
+      <view class="sheet-head">
+        <view class="sheet-title">开始问诊</view>
+        <view class="sheet-sub">每次问诊都是一个独立档案袋，可随时回来继续</view>
+      </view>
+      <view class="sheet-new" bindtap="onCreateSession">＋ 新建问诊记录</view>
+      <scroll-view class="sheet-list" scroll-y>
+        <view wx:for="{{sessions}}" wx:key="_id" class="sheet-item" data-id="{{item._id}}" bindtap="onPickSession">
+          <view class="si-top">
+            <text class="si-title ellipsis">{{item.title}}</text>
+            <text wx:if="{{item.published}}" class="si-badge">已发布</text>
+          </view>
+          <view class="si-sub">{{item.petName || '未指定宠物'}} · {{item.timeText}} · {{item.count}} 条对话</view>
+        </view>
+        <view wx:if="{{loadingSessions}}" class="sheet-empty">加载中…</view>
+        <view wx:elif="{{!sessions.length}}" class="sheet-empty">还没有历史问诊记录</view>
+      </scroll-view>
+    </view>
+  </view>
+
   <!-- 输入栏 -->
   <view class="inputbar">
+    <view class="camera-btn" bindtap="onCameraConsult">📷</view>
     <input
       class="msg-input"
       value="{{inputValue}}"

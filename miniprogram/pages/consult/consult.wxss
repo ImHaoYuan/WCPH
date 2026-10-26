@@ -294,3 +294,48 @@
   color: rgba(255, 255, 255, 0.9);
   padding: 0 8rpx;
 }
+
+/* 症状拍照问诊入口 */
+.symptom-entry {
+  display: flex;
+  align-items: center;
+  margin: 24rpx 32rpx 0;
+  padding: 28rpx;
+  background: linear-gradient(135deg, #6C8CFF 0%, #8AA0FF 100%);
+}
+
+.se-icon {
+  width: 88rpx;
+  height: 88rpx;
+  flex: 0 0 88rpx;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 46rpx;
+}
+
+.se-body {
+  flex: 1;
+  min-width: 0;
+  margin-left: 24rpx;
+}
+
+.se-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #fff;
+}
+
+.se-sub {
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.se-arrow {
+  flex: 0 0 auto;
+  font-size: 44rpx;
+  color: rgba(255, 255, 255, 0.9);
+}

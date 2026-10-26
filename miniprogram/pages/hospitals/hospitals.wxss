@@ -1,0 +1,126 @@
+.page {
+  min-height: 100vh;
+  padding: 24rpx 24rpx calc(40rpx + env(safe-area-inset-bottom));
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 28rpx;
+}
+
+.status.ok {
+  background: #EAF7EF;
+}
+
+.s-text {
+  font-size: 26rpx;
+  color: var(--text-sub);
+  flex: 1;
+}
+
+.status.ok .s-text {
+  color: #3BA05F;
+}
+
+.s-btn {
+  flex: 0 0 auto;
+  margin-left: 20rpx;
+  padding: 8rpx 28rpx;
+  border-radius: 999rpx;
+  background: var(--primary);
+  color: #fff;
+  font-size: 24rpx;
+}
+
+.hosp {
+  margin-top: 24rpx;
+  padding: 24rpx 28rpx;
+}
+
+.h-head {
+  display: flex;
+  align-items: center;
+}
+
+.h-icon {
+  width: 88rpx;
+  height: 88rpx;
+  flex: 0 0 88rpx;
+  border-radius: 24rpx;
+  background: var(--primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44rpx;
+}
+
+.h-info {
+  flex: 1;
+  min-width: 0;
+  margin: 0 20rpx;
+}
+
+.h-title-line {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.h-name {
+  flex: 0 1 auto;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.h-tag {
+  flex: 0 0 auto;
+  margin-left: 12rpx;
+  padding: 2rpx 14rpx;
+  border-radius: 999rpx;
+  background: #FFF0F0;
+  color: var(--danger);
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
+.h-addr {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: var(--text-sub);
+}
+
+.h-dist {
+  flex: 0 0 auto;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.h-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18rpx;
+  padding-top: 18rpx;
+  border-top: 2rpx solid #F0F1F5;
+}
+
+.h-btn {
+  padding: 8rpx 28rpx;
+  border-radius: 999rpx;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 24rpx;
+  font-weight: 600;
+  margin-left: 16rpx;
+}
+
+.tip {
+  margin: 32rpx 16rpx 0;
+  text-align: center;
+  font-size: 22rpx;
+  color: var(--text-light);
+  line-height: 1.6;
+}

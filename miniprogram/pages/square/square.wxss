@@ -20,6 +20,55 @@
   color: var(--text-sub);
 }
 
+/* 头部：标题 + 信封入口 */
+.head-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.msg-entry {
+  position: relative;
+  padding: 8rpx 12rpx 8rpx 0;
+  font-size: 44rpx;
+  line-height: 1;
+}
+
+.msg-badge {
+  position: absolute;
+  top: -6rpx;
+  right: -8rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  padding: 0 8rpx;
+  border-radius: 999rpx;
+  background: var(--danger);
+  color: #fff;
+  font-size: 20rpx;
+  line-height: 32rpx;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* 精选好帖入口 */
+.featured-entry {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 12rpx;
+  padding: 8rpx 24rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #FFF3E0 0%, #FFE8EC 100%);
+  border: 2rpx solid #FFD9A0;
+  color: #C77800;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.fe-arrow {
+  margin-left: 8rpx;
+  font-size: 28rpx;
+}
+
 /* 云端不可用提示条 */
 .offline-tip {
   margin: 24rpx 32rpx 0;
@@ -33,6 +82,7 @@
 
 /* 帖子卡片 */
 .post {
+  position: relative;
   margin: 24rpx 32rpx 0;
   padding: 28rpx;
 }
@@ -66,10 +116,54 @@
   color: var(--text-main);
 }
 
+.p-title-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.p-title-row .p-title {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 自己的帖子角标：橙粉渐变，与其余标签区分 */
+.my-tag {
+  flex: 0 0 auto;
+  margin-left: 12rpx;
+  padding: 2rpx 16rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #FF9F43 0%, #FF6B81 100%);
+  color: #fff;
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
 .p-sub {
   margin-top: 6rpx;
   font-size: 22rpx;
   color: var(--text-sub);
+}
+
+.part-tag {
+  display: inline-block;
+  margin-left: 12rpx;
+  padding: 2rpx 14rpx;
+  border-radius: 999rpx;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
+.demo-tag {
+  display: inline-block;
+  margin-left: 12rpx;
+  padding: 2rpx 14rpx;
+  border-radius: 999rpx;
+  background: #F2F3F7;
+  color: var(--text-light);
+  font-size: 20rpx;
 }
 
 .p-tag {
@@ -86,6 +180,15 @@
   font-size: 27rpx;
   line-height: 1.7;
   color: var(--text-main);
+}
+
+/* 帖子缩略图 */
+.p-img {
+  width: 100%;
+  height: 320rpx;
+  margin-top: 20rpx;
+  border-radius: 16rpx;
+  background: #F2F3F7;
 }
 
 .p-foot {
@@ -116,58 +219,67 @@
   color: #E5484D;
 }
 
-/* 评论区 */
-.p-comments {
-  margin-top: 20rpx;
-  padding-top: 20rpx;
-  border-top: 2rpx solid #F0F1F5;
+/* 收藏五角星：空心 ↔ 实心黄 */
+.p-act.fav {
+  font-size: 30rpx;
+  line-height: 1;
 }
 
-.c-item {
-  font-size: 25rpx;
-  line-height: 1.6;
+.p-act.fav-on {
+  color: #FFB800;
+}
+
+/* 「⋯」按钮与下拉菜单 */
+.p-more {
+  margin-left: 28rpx;
+  padding: 6rpx 10rpx;
+  font-size: 30rpx;
+  line-height: 1;
+  color: var(--text-sub);
+  letter-spacing: 4rpx;
+}
+
+.more-mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  background: transparent;
+}
+
+.more-menu {
+  position: absolute;
+  right: 20rpx;
+  bottom: 88rpx;
+  z-index: 40;
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 8rpx 30rpx rgba(31, 36, 48, 0.18);
   padding: 8rpx 0;
 }
 
-.c-author {
-  color: var(--primary);
-}
-
-.c-content {
+.mm-item {
+  padding: 16rpx 44rpx;
+  font-size: 26rpx;
   color: var(--text-main);
 }
 
-.c-empty {
-  font-size: 24rpx;
+.mm-item + .mm-item {
+  border-top: 2rpx solid #F5F6FA;
+}
+
+.mm-item:active {
+  background: #F5F6FA;
+}
+
+/* 分页加载提示 */
+.load-more {
+  padding: 32rpx 0;
+  text-align: center;
+  font-size: 22rpx;
   color: var(--text-light);
-  padding: 8rpx 0;
-}
-
-.c-input-row {
-  display: flex;
-  align-items: center;
-  margin-top: 16rpx;
-}
-
-.c-input {
-  flex: 1;
-  min-width: 0;
-  height: 64rpx;
-  padding: 0 24rpx;
-  border-radius: 999rpx;
-  background: #F2F3F7;
-  font-size: 25rpx;
-}
-
-.c-send {
-  margin-left: 16rpx;
-  padding: 0 28rpx;
-  height: 64rpx;
-  line-height: 64rpx;
-  border-radius: 999rpx;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-  color: #fff;
-  font-size: 24rpx;
 }
 
 .empty {
@@ -187,4 +299,27 @@
 
 .ph {
   color: var(--text-light);
+}
+
+/* 右下角发布按钮 */
+.fab {
+  position: fixed;
+  right: 40rpx;
+  bottom: calc(48rpx + env(safe-area-inset-bottom));
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 52rpx;
+  background: linear-gradient(135deg, #6C8CFF 0%, #9B7BFF 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12rpx 28rpx rgba(108, 140, 255, 0.4);
+  z-index: 20;
+}
+
+.fab-plus {
+  color: #fff;
+  font-size: 56rpx;
+  line-height: 1;
+  margin-top: -6rpx;
 }

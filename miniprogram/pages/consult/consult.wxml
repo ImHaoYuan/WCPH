@@ -30,6 +30,15 @@
     </scroll-view>
   </view>
 
+  <view class="symptom-entry card" bindtap="onSymptomForm">
+    <view class="se-icon">🩺</view>
+    <view class="se-body">
+      <view class="se-title">症状拍照问诊</view>
+      <view class="se-sub">选择部位 · 填写病程 → AI 分诊报告</view>
+    </view>
+    <text class="se-arrow">›</text>
+  </view>
+
   <view class="consult-actions">
     <button class="btn-media" bindtap="onMediaConsult">
       <view class="btn-emoji">📷</view>

@@ -1,7 +1,16 @@
 <view class="page">
   <view class="head">
-    <view class="head-title">问诊广场</view>
-    <view class="head-sub">案例均已脱敏 · 分享经验，互帮互助</view>
+    <view class="head-top">
+      <view class="head-title">问诊广场</view>
+      <view class="msg-entry" bindtap="onMessages">
+        <text>✉️</text>
+        <view wx:if="{{unread}}" class="msg-badge">{{unread > 99 ? '99+' : unread}}</view>
+      </view>
+    </view>
+    <view class="featured-entry" bindtap="onFeatured">
+      <text>⭐ 精选好帖</text>
+      <text class="fe-arrow">›</text>
+    </view>
   </view>
 
   <view wx:if="{{offline}}" class="offline-tip">📴 云端未连接，当前展示示例案例</view>
@@ -9,60 +18,67 @@
   <view wx:if="{{loading}}" class="empty card">加载中…</view>
   <view wx:elif="{{!posts.length}}" class="empty card">暂无案例，快来问诊分享吧</view>
 
-  <view wx:for="{{posts}}" wx:key="_id" class="post card">
+  <view wx:for="{{posts}}" wx:key="_id" class="post card" data-id="{{item._id}}" bindtap="onPostTap">
     <view class="p-head">
       <view class="p-avatar">{{item.kindEmoji}}</view>
       <view class="p-meta">
-        <view class="p-title ellipsis">{{item.title}}</view>
-        <view class="p-sub">{{item.petKind}}{{item.breedText}} · 铲屎官{{item.demo ? '（示例）' : ''}}</view>
+        <view class="p-title-row">
+          <text class="p-title ellipsis">{{item.title}}</text>
+          <text wx:if="{{item.mine}}" class="my-tag">我</text>
+        </view>
+        <view class="p-sub">
+          {{item.petKind}}{{item.breedText}}
+          <text wx:if="{{item.part && item.part !== '其他'}}" class="part-tag">{{item.part}}</text>
+          <text wx:if="{{item.demo}}" class="demo-tag">示例</text>
+        </view>
       </view>
       <text wx:if="{{item.fromConsult}}" class="p-tag">来自在线问诊</text>
     </view>
 
     <view class="p-excerpt" user-select>{{item.excerpt}}</view>
 
+    <image
+      wx:if="{{item.image}}"
+      class="p-img"
+      src="{{item.image}}"
+      mode="aspectFill"
+      lazy-load
+    ></image>
+
     <view class="p-foot">
       <view class="p-time">{{item.timeText}}</view>
       <view class="p-actions">
-        <view class="p-act {{item.likedByMe ? 'liked' : ''}}" data-id="{{item._id}}" bindtap="onLike">
+        <view class="p-act {{item.likedByMe ? 'liked' : ''}}" data-id="{{item._id}}" catchtap="onLike">
           {{item.likedByMe ? '❤️' : '🤍'}} {{item.likeCount}}
         </view>
-        <view class="p-act" data-id="{{item._id}}" bindtap="onToggleComments">
-          💬 {{item.comments.length}}
-        </view>
+        <view class="p-act">💬 {{item.commentCount}}</view>
+        <view
+          wx:if="{{!item.mine}}"
+          class="p-act fav {{item.fav ? 'fav-on' : ''}}"
+          data-id="{{item._id}}"
+          catchtap="onFav"
+        >{{item.fav ? '★' : '☆'}}</view>
+        <view wx:if="{{!item.mine}}" class="p-more" data-id="{{item._id}}" catchtap="onMore">⋯</view>
       </view>
     </view>
 
-    <!-- 评论区 -->
-    <view wx:if="{{expandedId === item._id}}" class="p-comments">
-      <view
-        wx:for="{{item.comments}}"
-        wx:for-item="c"
-        wx:key="createdAt"
-        class="c-item"
-        data-id="{{item._id}}"
-        data-index="{{index}}"
-        bindtap="onCommentTap"
-      >
-        <text class="c-author">{{c.mine ? c.author : '铲屎官'}}：</text>
-        <text class="c-content" user-select>{{c.content}}</text>
-      </view>
-      <view wx:if="{{!item.comments.length}}" class="c-empty">还没有评论，来说两句吧</view>
-      <view class="c-input-row">
-        <input
-          class="c-input"
-          value="{{commentText}}"
-          bindinput="onCommentInput"
-          confirm-type="send"
-          placeholder="友善评论，共建互助社区…"
-          placeholder-class="ph"
-          data-id="{{item._id}}"
-          bindconfirm="onCommentSend"
-        />
-        <view class="c-send" data-id="{{item._id}}" bindtap="onCommentSend">发送</view>
-      </view>
+    <!-- 帖子操作下拉菜单 -->
+    <view wx:if="{{menuId === item._id}}" class="more-menu" catchtap="noop">
+      <view class="mm-item" data-id="{{item._id}}" catchtap="onNotInterested">不感兴趣</view>
+      <view class="mm-item" data-id="{{item._id}}" catchtap="onReport">举报</view>
     </view>
   </view>
 
+  <view wx:if="{{loadingMore}}" class="load-more">加载中…</view>
+  <view wx:elif="{{!hasMore && posts.length}}" class="load-more">— 没有更多了 —</view>
+
   <view class="disclaimer">案例内容仅供参考，不能替代执业兽医的现场诊断。</view>
+
+  <!-- 下拉菜单展开时的透明遮罩：点击任意处关闭 -->
+  <view wx:if="{{menuId}}" class="more-mask" catchtap="onCloseMenu"></view>
+
+  <!-- 右下角发布按钮 -->
+  <view class="fab" bindtap="onCreateTopic">
+    <text class="fab-plus">＋</text>
+  </view>
 </view>

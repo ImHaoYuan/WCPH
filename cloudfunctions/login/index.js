@@ -24,7 +24,7 @@ async function upsertUser(openid, phone, extra) {
     await col.doc(doc._id).update({
       data: Object.assign({ phone, updatedAt: now }, extra || {})
     })
-    return Object.assign({}, doc, { phone, openid })
+    return Object.assign({}, doc, { phone, openid }, extra || {})
   }
   const data = Object.assign(
     { _openid: openid, phone, createdAt: now, updatedAt: now },
@@ -102,6 +102,23 @@ exports.main = async (event) => {
         avatarUrl: ''
       })
       return { ok: true, data: { openid: OPENID, phone, nickname: user.nickname, avatarUrl: user.avatarUrl } }
+    }
+
+    // 更新头像/昵称
+    if (action === 'updateProfile') {
+      const nickname = String(event.nickname || '').trim().slice(0, 20)
+      const avatarUrl = String(event.avatarUrl || '').slice(0, 300)
+      if (!nickname && !avatarUrl) {
+        return { ok: false, msg: '没有需要更新的内容' }
+      }
+      const extra = {}
+      if (nickname) extra.nickname = nickname
+      if (avatarUrl) extra.avatarUrl = avatarUrl
+      const user = await upsertUser(OPENID, event.phone || '', extra)
+      return {
+        ok: true,
+        data: { openid: OPENID, phone: user.phone, nickname: user.nickname, avatarUrl: user.avatarUrl }
+      }
     }
 
     return { ok: false, msg: '未知操作' }

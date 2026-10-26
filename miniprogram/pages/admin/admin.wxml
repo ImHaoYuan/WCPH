@@ -1,0 +1,49 @@
+<view class="page">
+  <view wx:if="{{!isAdmin && !loading}}" class="empty card">无管理员权限，本页面仅管理员可见</view>
+
+  <block wx:else>
+    <view class="tabs card">
+      <view class="tab {{tab === 'posts' ? 'active' : ''}}" data-tab="posts" bindtap="onTab">帖子管理 {{posts.length}}</view>
+      <view class="tab {{tab === 'reports' ? 'active' : ''}}" data-tab="reports" bindtap="onTab">举报处理 {{reports.length}}</view>
+    </view>
+
+    <block wx:if="{{tab === 'posts'}}">
+      <view wx:if="{{loading}}" class="empty card">加载中…</view>
+      <block wx:else>
+        <view class="a-card card" wx:for="{{posts}}" wx:key="_id">
+          <view class="a-head">
+            <text class="a-emoji">{{item.kindEmoji}}</text>
+            <view class="a-info">
+              <view class="a-title ellipsis">{{item.title}}</view>
+              <view class="a-sub">{{item.petKind}}{{item.petBreed ? ' · ' + item.petBreed : ''}} · {{item.timeText}}{{item.demo ? ' · 示例' : ''}}</view>
+            </view>
+          </view>
+          <view class="a-actions">
+            <text class="a-btn danger" data-id="{{item._id}}" bindtap="onRemovePost">下架</text>
+          </view>
+        </view>
+        <view wx:if="{{!posts.length}}" class="empty card">暂无帖子</view>
+      </block>
+    </block>
+
+    <block wx:else>
+      <view wx:if="{{loading}}" class="empty card">加载中…</view>
+      <block wx:else>
+        <view class="a-card card" wx:for="{{reports}}" wx:key="_id">
+          <view class="a-head">
+            <view class="a-info">
+              <view class="a-title ellipsis">{{item.type}}{{item.reason ? '：' + item.reason : ''}}</view>
+              <view class="a-sub">被举报帖：{{item.postTitle || '（已删除）'}} · {{item.timeText}}</view>
+            </view>
+            <text class="a-status {{item.status === 'handled' ? 'ok' : ''}}">{{item.statusText}}</text>
+          </view>
+          <view class="a-actions">
+            <text wx:if="{{item.postId}}" class="a-btn danger" data-postid="{{item.postId}}" bindtap="onRemoveReportedPost">下架帖子</text>
+            <text wx:if="{{item.status !== 'handled'}}" class="a-btn primary" data-id="{{item._id}}" bindtap="onHandleReport">标记已处理</text>
+          </view>
+        </view>
+        <view wx:if="{{!reports.length}}" class="empty card">暂无举报</view>
+      </block>
+    </block>
+  </block>
+</view>

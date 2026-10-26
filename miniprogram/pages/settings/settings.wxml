@@ -1,0 +1,12 @@
+<view class="page">
+  <view class="card" wx:for="{{sections}}" wx:key="id">
+    <view class="s-head" data-id="{{item.id}}" bindtap="onToggle">
+      <text class="s-icon">{{item.icon}}</text>
+      <text class="s-title">{{item.title}}</text>
+      <text class="s-arrow {{openId === item.id ? 'open' : ''}}">›</text>
+    </view>
+    <view wx:if="{{openId === item.id}}" class="s-body" user-select>{{item.content}}</view>
+  </view>
+
+  <view class="version">AI宠愈 · 演示版本 1.0.0</view>
+</view>

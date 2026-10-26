@@ -44,7 +44,10 @@ Page({
     body: '标准',
 
     dewormOptions: ['已驱虫', '未驱虫', '未知'],
-    dewormed: '未知'
+    dewormed: '未知',
+
+    vaccineOptions: ['疫苗齐全', '部分接种', '未接种', '未知'],
+    vaccinated: '未知'
   },
 
   onLoad(options) {
@@ -102,7 +105,8 @@ Page({
           weight: p.weight != null ? String(p.weight) : '',
           neutered: p.neutered || '未知',
           body: p.body || '标准',
-          dewormed: p.dewormed || '未知'
+          dewormed: p.dewormed || '未知',
+          vaccinated: p.vaccinated || '未知'
         })
       })
       .catch(err => {
@@ -191,6 +195,10 @@ Page({
     this.setData({ dewormed: e.currentTarget.dataset.val })
   },
 
+  onVaccinated(e) {
+    this.setData({ vaccinated: e.currentTarget.dataset.val })
+  },
+
   onBirth(e) {
     this.setData({ birthDate: e.detail.value })
   },
@@ -228,7 +236,8 @@ Page({
       weight: parseFloat(d.weight),
       neutered: d.neutered,
       body: d.body,
-      dewormed: d.dewormed
+      dewormed: d.dewormed,
+      vaccinated: d.vaccinated
     }
 
     this.setData({ saving: true })
@@ -238,6 +247,8 @@ Page({
       .then(() => {
         wx.hideLoading()
         this.setData({ saving: false })
+        // 通知聊天页等页面刷新宠物列表
+        getApp()._petsChanged = true
         wx.showToast({ title: '已保存', icon: 'success' })
         setTimeout(() => wx.navigateBack(), 700)
       })
@@ -246,6 +257,10 @@ Page({
         this.setData({ saving: false })
         cloud.toastError(e)
       })
+  },
+
+  onAddReminder() {
+    wx.navigateTo({ url: '/pages/reminderEdit/reminderEdit?petId=' + this.data.id })
   },
 
   onDelete() {
@@ -260,6 +275,7 @@ Page({
           .deletePet(this.data.id)
           .then(() => {
             wx.hideLoading()
+            getApp()._petsChanged = true
             wx.showToast({ title: '已删除', icon: 'success' })
             setTimeout(() => wx.navigateBack(), 700)
           })
