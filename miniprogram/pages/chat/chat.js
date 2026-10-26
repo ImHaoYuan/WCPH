@@ -128,8 +128,6 @@ Page({
 
   noop() {},
 
-  noop() {},
-
   // 返回首页：有未发送附件时询问是否保存
   onBack() {
     const goHome = () => {
