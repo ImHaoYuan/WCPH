@@ -41,6 +41,20 @@ module.exports = {
   sendCode: phone => call('login', { action: 'sendCode', phone }),
   updateProfile: (nickname, avatarUrl) =>
     call('login', { action: 'updateProfile', nickname, avatarUrl }),
+  // 账号密码登录（账号由管理员创建）
+  accountLogin: (username, password) =>
+    call('login', { action: 'accountLogin', username, password }),
+  // 管理员登录
+  adminLogin: (username, password) =>
+    call('login', { action: 'adminLogin', username, password }),
+
+  // ===== 管理员后台 =====
+  adminIsAdmin: () => call('admin', { action: 'isAdmin' }),
+  adminAddAccount: (username, password, nickname) =>
+    call('admin', { action: 'addAccount', username, password, nickname }),
+  adminListAccounts: () => call('admin', { action: 'listAccounts' }),
+  adminRemoveAccount: id => call('admin', { action: 'removeAccount', id }),
+  adminStats: () => call('admin', { action: 'stats' }),
 
   // ===== 宠物 =====
   listPets: () => call('pet', { action: 'list' }),
@@ -67,6 +81,7 @@ module.exports = {
   // ===== 问诊广场 =====
   squareList: page => call('square', { action: 'list', page }),
   squareFeatured: () => call('square', { action: 'featured' }),
+  squareOfficial: () => call('square', { action: 'officialList' }),
   squareGet: id => call('square', { action: 'get', id }),
   squareMine: () => call('square', { action: 'mylist' }),
   squareFavlist: ids => call('square', { action: 'favlist', ids }),

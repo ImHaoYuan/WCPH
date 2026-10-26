@@ -56,6 +56,58 @@ const FALLBACK_POSTS = [
   }
 ]
 
+// 云端不可用（如未部署 square 云函数）时的官方好帖本地兜底（已脱敏）
+const OFFICIAL_FALLBACK = [
+  {
+    _id: 'official-f1',
+    official: true,
+    petKind: '猫',
+    petBreed: '通用',
+    title: '猫咪换季掉毛严重怎么办？',
+    excerpt: '每周梳毛2-3次减少浮毛，适量补充卵磷脂与鱼油；若出现斑秃、红疹、频繁抓挠，需排查皮肤病并及时就医。',
+    image: '',
+    likes: [],
+    comments: [],
+    createdAt: Date.now() - 3600000
+  },
+  {
+    _id: 'official-f2',
+    official: true,
+    petKind: '狗',
+    petBreed: '通用',
+    title: '狗狗每天到底要遛多久？',
+    excerpt: '小型犬每天30-60分钟、中型犬60-90分钟、大型犬90-120分钟，可分早晚两次；老年犬与幼犬适量减半，天气炎热时避开正午。',
+    image: '',
+    likes: [],
+    comments: [],
+    createdAt: Date.now() - 7200000
+  },
+  {
+    _id: 'official-f3',
+    official: true,
+    petKind: '兔',
+    petBreed: '通用',
+    title: '兔子的科学饮食结构',
+    excerpt: '提摩西草应占每日饮食70%以上，兔粮按体重限量（约体重的2%-3%），每日提供新鲜饮水与少量绿叶菜，避免高糖零食。',
+    image: '',
+    likes: [],
+    comments: [],
+    createdAt: Date.now() - 10800000
+  },
+  {
+    _id: 'official-f4',
+    official: true,
+    petKind: '龟',
+    petBreed: '通用',
+    title: '乌龟冬眠前后的养护要点',
+    excerpt: '冬眠前2-4周停止喂食清空肠胃，环境温度稳定在5-10℃，提供湿润垫材；冬眠中每周检查一次，出现腐皮腐甲需终止冬眠加温处理。',
+    image: '',
+    likes: [],
+    comments: [],
+    createdAt: Date.now() - 14400000
+  }
+]
+
 Page({
   data: {
     posts: [],
@@ -71,7 +123,18 @@ Page({
     // 收藏的帖子 id 列表（本地持久化）
     favIds: [],
     // 未读消息数（信封角标）
-    unread: 0
+    unread: 0,
+    // 从消息页跳转过来时要定位高亮的帖子 id
+    highlightId: '',
+    // 每日公告弹框
+    showNotice: false,
+    noticeDismiss: false,
+    // 三标签：问诊大厅 / 精选好帖 / 官方好帖
+    tab: 'hall',
+    featuredPosts: [],
+    featuredLoading: false,
+    officialPosts: [],
+    officialLoading: false
   },
 
   onShow() {
@@ -79,10 +142,36 @@ Page({
       openId: getApp().globalData.openid || '',
       hiddenIds: this.loadHiddenIds(),
       favIds: this.loadFavIds(),
-      menuId: ''
+      menuId: '',
+      tab: 'hall'
     })
     this.refresh()
     this.loadUnread()
+    this.checkDailyNotice()
+  },
+
+  // 每天第一次进入广场：弹公告（勾选“一天内不再提醒”则当天不再弹）
+  checkDailyNotice() {
+    let dismissed = false
+    try {
+      dismissed = !!wx.getStorageSync('square_notice_' + util.todayStr())
+    } catch (e) {
+      dismissed = false
+    }
+    this.setData({ showNotice: !dismissed, noticeDismiss: false })
+  },
+
+  onNoticeToggle() {
+    this.setData({ noticeDismiss: !this.data.noticeDismiss })
+  },
+
+  onNoticeClose() {
+    if (this.data.noticeDismiss) {
+      try {
+        wx.setStorageSync('square_notice_' + util.todayStr(), '1')
+      } catch (e) {}
+    }
+    this.setData({ showNotice: false })
   },
 
   loadUnread() {
@@ -99,17 +188,78 @@ Page({
   },
 
   onPullDownRefresh() {
-    this.refresh().then(() => wx.stopPullDownRefresh())
+    this.loadUnread()
+    this.reloadActive().then(() => wx.stopPullDownRefresh())
   },
 
   onReachBottom() {
+    if (this.data.tab !== 'hall') return
     if (this.data.offline || this.data.loadingMore || !this.data.hasMore) return
     this.load(this.data.page + 1, true)
   },
 
   refresh() {
     this.setData({ page: 0, hasMore: true })
-    return this.load(0)
+    return this.load(0).then(() => this.scrollToTarget())
+  },
+
+  // 消息页跳转过来时：滚动定位到目标帖子并高亮提示（帖子在问诊大厅列表中）
+  scrollToTarget() {
+    const targetId = getApp()._squareTargetPostId
+    if (!targetId) return
+    delete getApp()._squareTargetPostId
+    if (this.data.tab !== 'hall') this.setData({ tab: 'hall' })
+    setTimeout(() => {
+      const exists = this.data.posts.some(p => p._id === targetId)
+      if (!exists) {
+        wx.showToast({ title: '该帖子不在当前列表（可能已下架）', icon: 'none' })
+        return
+      }
+      wx.pageScrollTo({ selector: '#post-' + targetId, duration: 300 })
+      this.setData({ highlightId: targetId })
+      setTimeout(() => this.setData({ highlightId: '' }), 2600)
+    }, 400)
+  },
+
+  // 标签切换（页内切换，不跳转页面）
+  onTab(e) {
+    const tab = e.currentTarget.dataset.tab
+    if (tab === this.data.tab) return
+    this.setData({ tab, menuId: '' })
+    if (tab === 'featured' && !this.data.featuredPosts.length) this.loadFeatured()
+    else if (tab === 'official' && !this.data.officialPosts.length) this.loadOfficial()
+  },
+
+  // 精选好帖：点赞过百上榜（样式与大厅一致）
+  loadFeatured() {
+    this.setData({ featuredLoading: true })
+    return cloud
+      .squareFeatured()
+      .then(list => {
+        this.setData({ featuredPosts: this.applyPosts(list || []), featuredLoading: false })
+      })
+      .catch(err => {
+        this.setData({ featuredLoading: false })
+        console.warn('[square] 精选加载失败', err && err.message)
+        wx.showToast({ title: '精选加载失败，请下拉重试', icon: 'none' })
+      })
+  },
+
+  // 官方好帖：官方发布的宠物养护小知识（云端不可用时本地兜底）
+  loadOfficial() {
+    this.setData({ officialLoading: true })
+    return cloud
+      .squareOfficial()
+      .then(list => {
+        this.setData({ officialPosts: this.applyPosts(list || []), officialLoading: false })
+      })
+      .catch(err => {
+        console.warn('[square] 官方好帖云端不可用，使用本地示例', err && err.message)
+        this.setData({
+          officialPosts: this.applyPosts(OFFICIAL_FALLBACK),
+          officialLoading: false
+        })
+      })
   },
 
   load(page, append) {
@@ -208,11 +358,25 @@ Page({
     } catch (e) {}
   },
 
-  // 收藏/取消收藏：空心星 ↔ 实心黄星
+  // 当前标签对应的列表 data key
+  activeKey() {
+    if (this.data.tab === 'featured') return 'featuredPosts'
+    if (this.data.tab === 'official') return 'officialPosts'
+    return 'posts'
+  },
+
+  reloadActive() {
+    if (this.data.tab === 'featured') return this.loadFeatured()
+    if (this.data.tab === 'official') return this.loadOfficial()
+    return this.refresh()
+  },
+
+  // 收藏/取消收藏：空心星 ↔ 实心黄星（作用于当前标签列表）
   onFav(e) {
     if (!getApp().requireLogin()) return
     const id = e.currentTarget.dataset.id
-    const post = this.data.posts.find(p => p._id === id)
+    const key = this.activeKey()
+    const post = this.data[key].find(p => p._id === id)
     const favIds = this.data.favIds.slice()
     const idx = favIds.indexOf(id)
     let fav = false
@@ -229,13 +393,8 @@ Page({
     this.saveFavIds(favIds)
     this.setData({
       favIds,
-      posts: this.data.posts.map(p => (p._id === id ? Object.assign({}, p, { fav }) : p))
+      [key]: this.data[key].map(p => (p._id === id ? Object.assign({}, p, { fav }) : p))
     })
-  },
-
-  // 精选好帖入口
-  onFeatured() {
-    wx.navigateTo({ url: '/pages/featured/featured' })
   },
 
   noop() {},
@@ -328,8 +487,9 @@ Page({
   onLike(e) {
     if (!getApp().requireLogin()) return
     const id = e.currentTarget.dataset.id
+    const key = this.activeKey()
     let newLiked = false
-    const posts = this.data.posts.map(p => {
+    const list = this.data[key].map(p => {
       if (p._id !== id) return p
       newLiked = !p.likedByMe
       return Object.assign({}, p, {
@@ -337,10 +497,10 @@ Page({
         likeCount: p.likeCount + (newLiked ? 1 : -1)
       })
     })
-    this.setData({ posts })
+    this.setData({ [key]: list })
     cloud.squareLike(id).catch(() => {
       console.warn('[square] like sync failed')
-      this.refresh()
+      this.reloadActive()
     })
   },
 

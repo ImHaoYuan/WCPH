@@ -60,9 +60,9 @@ async function ensureCollection() {
   } catch (e) {}
 }
 
-// 给帖子作者新增一条通知（作者本人操作不通知，演示数据不通知）
+// 给帖子作者新增一条通知（作者本人操作不通知，演示/官方数据不通知）
 async function addNotify(ownerOpenid, fromOpenid, data) {
-  if (!ownerOpenid || ownerOpenid === fromOpenid || ownerOpenid === 'demo') return
+  if (!ownerOpenid || ownerOpenid === fromOpenid || ownerOpenid === 'demo' || ownerOpenid === 'official') return
   await db.collection(NOTIFY_COL).add({
     data: {
       _openid: ownerOpenid,
@@ -78,6 +78,61 @@ async function addNotify(ownerOpenid, fromOpenid, data) {
 }
 
 // 确保精选演示帖存在（幂等）：没有过百帖子时也能展示精选页效果
+// 官方好帖种子：宠物养护小知识（集合为空时自动写入，幂等）
+const OFFICIAL_SEED = [
+  {
+    petKind: '猫',
+    petBreed: '通用',
+    title: '猫咪换季掉毛严重怎么办？',
+    excerpt: '每周梳毛2-3次减少浮毛，适量补充卵磷脂与鱼油；若出现斑秃、红疹、频繁抓挠，需排查皮肤病并及时就医。'
+  },
+  {
+    petKind: '狗',
+    petBreed: '通用',
+    title: '狗狗每天到底要遛多久？',
+    excerpt: '小型犬每天30-60分钟、中型犬60-90分钟、大型犬90-120分钟，可分早晚两次；老年犬与幼犬适量减半，天气炎热时避开正午。'
+  },
+  {
+    petKind: '兔',
+    petBreed: '通用',
+    title: '兔子的科学饮食结构',
+    excerpt: '提摩西草应占每日饮食70%以上，兔粮按体重限量（约体重的2%-3%），每日提供新鲜饮水与少量绿叶菜，避免高糖零食。'
+  },
+  {
+    petKind: '龟',
+    petBreed: '通用',
+    title: '乌龟冬眠前后的养护要点',
+    excerpt: '冬眠前2-4周停止喂食清空肠胃，环境温度稳定在5-10℃，提供湿润垫材；冬眠中每周检查一次，出现腐皮腐甲需终止冬眠加温处理。'
+  }
+]
+
+async function ensureOfficialPosts(col) {
+  try {
+    const c = await col.where({ official: true }).count()
+    if (c.total > 0) return
+    for (const s of OFFICIAL_SEED) {
+      await col.add({
+        data: {
+          _openid: 'official',
+          official: true,
+          petKind: s.petKind,
+          petBreed: s.petBreed,
+          part: '',
+          title: s.title,
+          excerpt: s.excerpt,
+          image: '',
+          likes: [],
+          likeCount: 0,
+          comments: [],
+          createdAt: Date.now() - Math.floor(Math.random() * 86400000)
+        }
+      })
+    }
+  } catch (e) {
+    console.warn('[square] 官方好帖初始化失败', e && e.message)
+  }
+}
+
 async function ensureFeaturedDemos(col) {
   const now = Date.now()
   // 兼容旧版精选演示帖：没有 lastLikeAt 的补为更早时间，保证同赞数时新帖排前
@@ -181,8 +236,19 @@ async function checkText(content, openid) {
   }
 }
 
-function isAdmin(openid) {
-  return ADMIN_OPENIDS.indexOf(openid) >= 0
+async function isAdmin(openid) {
+  if (ADMIN_OPENIDS.indexOf(openid) >= 0) return true
+  // 兼容账号密码登录的管理员：admins 集合中以 _openid 标记
+  try {
+    const res = await db
+      .collection('admins')
+      .where({ _openid: openid })
+      .limit(1)
+      .get()
+    return res.data.length > 0
+  } catch (e) {
+    return false
+  }
 }
 
 exports.main = async (event) => {
@@ -202,7 +268,7 @@ exports.main = async (event) => {
           .skip(page * PAGE_SIZE)
           .limit(PAGE_SIZE)
           .get()
-        posts = res.data
+        posts = res.data.filter(p => !p.official)
       } catch (e) {
         posts = []
       }
@@ -231,7 +297,7 @@ exports.main = async (event) => {
           .skip(0)
           .limit(PAGE_SIZE)
           .get()
-        posts = res.data
+        posts = res.data.filter(p => !p.official)
       }
       // 服务端标记是否本人发布（不依赖前端登录态）
       posts = posts.map(p => Object.assign({}, p, { mine: p._openid === OPENID }))
@@ -252,7 +318,7 @@ exports.main = async (event) => {
               lastLikeAt: p.lastLikeAt || p.createdAt || 0
             })
           )
-          .filter(p => p.likeCount >= 100)
+          .filter(p => p.likeCount >= 100 && !p.official)
           .sort(
             (a, b) =>
               b.likeCount - a.likeCount || b.lastLikeAt - a.lastLikeAt
@@ -260,6 +326,24 @@ exports.main = async (event) => {
       } catch (e) {
         posts = []
       }
+      return { ok: true, data: posts }
+    }
+
+    // 官方好帖：官方发布的宠物养护小知识（集合为空时自动播种）
+    if (action === 'officialList') {
+      await ensureOfficialPosts(col)
+      let posts = []
+      try {
+        const res = await col
+          .where({ official: true })
+          .orderBy('createdAt', 'desc')
+          .limit(50)
+          .get()
+        posts = res.data
+      } catch (e) {
+        posts = []
+      }
+      posts = posts.map(p => Object.assign({}, p, { mine: p._openid === OPENID }))
       return { ok: true, data: posts }
     }
 
@@ -392,7 +476,7 @@ exports.main = async (event) => {
       const comments = post.comments || []
       const target = comments.find(c => String(c.createdAt) === commentId)
       if (!target) return { ok: false, msg: '评论不存在' }
-      if (target._openid !== OPENID && post._openid !== OPENID && !isAdmin(OPENID)) {
+      if (target._openid !== OPENID && post._openid !== OPENID && !(await isAdmin(OPENID))) {
         return { ok: false, msg: '无权删除该评论' }
       }
       await col.doc(event.id).update({
@@ -433,7 +517,7 @@ exports.main = async (event) => {
       const res = await col.where({ _id: event.id }).limit(1).get()
       if (!res.data.length) return { ok: false, msg: '帖子不存在' }
       const post = res.data[0]
-      if (post._openid !== OPENID && !isAdmin(OPENID)) {
+      if (post._openid !== OPENID && !(await isAdmin(OPENID))) {
         return { ok: false, msg: '无权删除该帖子' }
       }
       await col.doc(event.id).remove()
@@ -463,18 +547,18 @@ exports.main = async (event) => {
 
     // ===== 管理员接口 =====
     if (action === 'amIAdmin') {
-      return { ok: true, data: { isAdmin: isAdmin(OPENID) } }
+      return { ok: true, data: { isAdmin: await isAdmin(OPENID) } }
     }
 
     if (action === 'adminPosts') {
-      if (!isAdmin(OPENID)) return { ok: false, msg: '无权限' }
+      if (!(await isAdmin(OPENID))) return { ok: false, msg: '无权限' }
       const res = await col.orderBy('createdAt', 'desc').limit(100).get()
       return { ok: true, data: res.data }
     }
 
     // 下架帖子（直接删除）
     if (action === 'adminRemove') {
-      if (!isAdmin(OPENID)) return { ok: false, msg: '无权限' }
+      if (!(await isAdmin(OPENID))) return { ok: false, msg: '无权限' }
       const res = await col.where({ _id: event.id }).limit(1).get()
       if (!res.data.length) return { ok: false, msg: '帖子不存在' }
       await col.doc(event.id).remove()
@@ -482,7 +566,7 @@ exports.main = async (event) => {
     }
 
     if (action === 'adminReports') {
-      if (!isAdmin(OPENID)) return { ok: false, msg: '无权限' }
+      if (!(await isAdmin(OPENID))) return { ok: false, msg: '无权限' }
       const res = await db
         .collection(REPORT_COL)
         .orderBy('createdAt', 'desc')
@@ -493,7 +577,7 @@ exports.main = async (event) => {
 
     // 处理举报：标记已处理（可顺带下架对应帖子）
     if (action === 'adminHandleReport') {
-      if (!isAdmin(OPENID)) return { ok: false, msg: '无权限' }
+      if (!(await isAdmin(OPENID))) return { ok: false, msg: '无权限' }
       const res = await db
         .collection(REPORT_COL)
         .where({ _id: event.id })

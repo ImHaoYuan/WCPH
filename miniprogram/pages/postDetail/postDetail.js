@@ -1,5 +1,6 @@
 const cloud = require('../../utils/cloud')
 const util = require('../../utils/util')
+const history = require('../../utils/history')
 
 const KIND_EMOJI = { 猫: '🐱', 狗: '🐶', 兔: '🐰', 鸟: '🐦', 仓鼠: '🐹', 乌龟: '🐢' }
 const REPORT_TYPES = ['广告营销', '辱骂攻击', '虚假信息', '虐宠内容', '其他']
@@ -70,6 +71,9 @@ Page({
       mine: post.mine !== undefined ? post.mine : post._openid === openid,
       hasRecord: !!post.recordId
     })
+    // 浏览他人帖子时记入历史浏览记录（自己的帖子不计入）
+    const isMine = post.mine !== undefined ? post.mine : post._openid === openid
+    if (!isMine && post._id) history.record(post)
   },
 
   onPreviewImage() {

@@ -1,4 +1,12 @@
 <view class="page">
+  <view class="hero-wrap">
+    <view class="hero card">
+      <view class="hero-badge">AI · 宠物健康助手</view>
+      <view class="hero-title">智能宠医，专业守护</view>
+      <view class="hero-sub">您好！我是您的AI宠物健康助手。我基于前沿宠物医学知识为您提供初步健康评估（非专业兽医诊断）。</view>
+    </view>
+  </view>
+
   <view class="pet-section card">
     <view class="pet-section-title">选择或添加宠物</view>
     <scroll-view class="pet-bar" scroll-x>
@@ -30,20 +38,11 @@
     </scroll-view>
   </view>
 
-  <view class="symptom-entry card" bindtap="onSymptomForm">
-    <view class="se-icon">🩺</view>
-    <view class="se-body">
-      <view class="se-title">症状拍照问诊</view>
-      <view class="se-sub">选择部位 · 填写病程 → AI 分诊报告</view>
-    </view>
-    <text class="se-arrow">›</text>
-  </view>
-
   <view class="consult-actions">
-    <button class="btn-media" bindtap="onMediaConsult">
+    <button class="btn-photo" bindtap="onSymptomForm">
       <view class="btn-emoji">📷</view>
-      <view class="btn-label">拍照/视频</view>
-      <view class="btn-label">上传问诊</view>
+      <view class="btn-label">症状拍照</view>
+      <view class="btn-label">问诊</view>
     </button>
     <button class="btn-text" bindtap="onTextConsult">
       <view class="btn-emoji">💬</view>
@@ -62,12 +61,6 @@
   </view>
 
   <view class="intro">
-    <view class="hero card">
-      <view class="hero-badge">AI · 宠物健康助手</view>
-      <view class="hero-title">智能宠医，专业守护</view>
-      <view class="hero-sub">您好！我是您的AI宠物健康助手。我基于前沿宠物医学知识为您提供初步健康评估（非专业兽医诊断）。</view>
-    </view>
-
     <view class="tip-card card" wx:for="{{tips}}" wx:key="title">
       <view class="tip-icon">{{item.icon}}</view>
       <view class="tip-body">

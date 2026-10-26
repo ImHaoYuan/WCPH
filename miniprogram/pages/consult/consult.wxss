@@ -107,6 +107,11 @@
   color: var(--text-sub);
 }
 
+/* 顶部品牌卡片容器 */
+.hero-wrap {
+  padding: 24rpx 32rpx 0;
+}
+
 /* 介绍区 */
 .intro {
   padding: 8rpx 32rpx 0;
@@ -185,14 +190,14 @@
   padding: 0 40rpx;
 }
 
-/* 问诊入口按钮组：左=拍照/视频上传（橙红），右=文字问诊（蓝紫），正方形大按钮 */
+/* 问诊入口按钮组：左=症状拍照问诊，右=文字问诊，正方形大按钮 */
 .consult-actions {
   display: flex;
   align-items: center;
   margin: 24rpx 32rpx 8rpx;
 }
 
-.btn-media,
+.btn-photo,
 .btn-text {
   flex: 1;
   margin: 0;
@@ -209,12 +214,12 @@
   font-weight: 600;
 }
 
-.btn-media::after,
+.btn-photo::after,
 .btn-text::after {
   border: none;
 }
 
-.btn-media {
+.btn-photo {
   background: linear-gradient(135deg, #FF9A5A 0%, #FF6B81 100%);
   box-shadow: 0 10rpx 24rpx rgba(255, 107, 129, 0.3);
 }
@@ -293,49 +298,4 @@
   font-size: 44rpx;
   color: rgba(255, 255, 255, 0.9);
   padding: 0 8rpx;
-}
-
-/* 症状拍照问诊入口 */
-.symptom-entry {
-  display: flex;
-  align-items: center;
-  margin: 24rpx 32rpx 0;
-  padding: 28rpx;
-  background: linear-gradient(135deg, #6C8CFF 0%, #8AA0FF 100%);
-}
-
-.se-icon {
-  width: 88rpx;
-  height: 88rpx;
-  flex: 0 0 88rpx;
-  border-radius: 24rpx;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 46rpx;
-}
-
-.se-body {
-  flex: 1;
-  min-width: 0;
-  margin-left: 24rpx;
-}
-
-.se-title {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #fff;
-}
-
-.se-sub {
-  margin-top: 6rpx;
-  font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.88);
-}
-
-.se-arrow {
-  flex: 0 0 auto;
-  font-size: 44rpx;
-  color: rgba(255, 255, 255, 0.9);
 }

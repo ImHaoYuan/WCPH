@@ -152,3 +152,39 @@
   color: var(--text-light);
   margin-top: 32rpx;
 }
+
+/* 登录方式切换 */
+.tabs {
+  display: flex;
+  margin-bottom: 24rpx;
+  padding: 8rpx;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 18rpx 0;
+  font-size: 28rpx;
+  color: var(--text-sub);
+  border-radius: 16rpx;
+}
+
+.tab.active {
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.account-tip {
+  padding: 20rpx 0 16rpx;
+  font-size: 24rpx;
+  color: var(--text-light);
+  text-align: center;
+}
+
+.admin-login {
+  text-align: center;
+  margin-top: 28rpx;
+  font-size: 26rpx;
+  color: var(--text-sub);
+}

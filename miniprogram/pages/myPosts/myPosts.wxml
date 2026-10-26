@@ -1,0 +1,14 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="empty">加载中…</view>
+  <block wx:elif="{{posts.length}}">
+    <view class="rec-card card" wx:for="{{posts}}" wx:key="_id" data-id="{{item._id}}" bindtap="onPostTap">
+      <view class="r-avatar">{{item.kindEmoji}}</view>
+      <view class="r-info">
+        <view class="r-title ellipsis">{{item.title}}</view>
+        <view class="r-desc">{{item.petKind}}{{item.petBreed ? ' · ' + item.petBreed : ''}} · {{item.timeText}}</view>
+      </view>
+      <text class="del-link" data-id="{{item._id}}" catchtap="onDelete">删除</text>
+    </view>
+  </block>
+  <view wx:else class="empty">还没有发布过内容，去广场发布吧</view>
+</view>

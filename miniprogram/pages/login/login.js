@@ -5,8 +5,11 @@ const REMEMBER_KEY = 'remember_phone'
 
 Page({
   data: {
+    loginTab: 'phone',
     phone: '',
     code: '',
+    username: '',
+    password: '',
     remember: false,
     countdown: 0,
     codeText: '获取验证码',
@@ -24,6 +27,18 @@ Page({
 
   onUnload() {
     this.clearTimer()
+  },
+
+  switchTab(e) {
+    this.setData({ loginTab: e.currentTarget.dataset.tab })
+  },
+
+  onUsernameInput(e) {
+    this.setData({ username: e.detail.value })
+  },
+
+  onPasswordInput(e) {
+    this.setData({ password: e.detail.value })
   },
 
   onPhoneInput(e) {
@@ -132,6 +147,36 @@ Page({
         this.setData({ saving: false })
         cloud.toastError(err)
       })
+  },
+
+  // 账号密码登录（账号由管理员在后台创建）
+  doAccountLogin() {
+    const username = this.data.username.trim()
+    const password = this.data.password
+    if (!username) {
+      wx.showToast({ title: '请输入账号', icon: 'none' })
+      return
+    }
+    if (!password) {
+      wx.showToast({ title: '请输入密码', icon: 'none' })
+      return
+    }
+    this.setData({ saving: true })
+    cloud
+      .accountLogin(username, password)
+      .then(userInfo => {
+        this.setData({ saving: false })
+        this.finishLogin(userInfo)
+      })
+      .catch(err => {
+        this.setData({ saving: false })
+        cloud.toastError(err)
+      })
+  },
+
+  // 管理员登录入口
+  onAdminLogin() {
+    wx.navigateTo({ url: '/pages/adminLogin/adminLogin' })
   },
 
   onGetPhone(e) {

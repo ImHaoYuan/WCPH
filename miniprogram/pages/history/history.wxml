@@ -1,0 +1,23 @@
+<view class="page">
+  <view wx:if="{{list.length}}" class="clear-row">
+    <text class="clear-link" bindtap="onClear">清空浏览记录</text>
+  </view>
+
+  <block wx:if="{{list.length}}">
+    <view
+      class="rec-card card"
+      wx:for="{{list}}"
+      wx:key="_id"
+      data-id="{{item._id}}"
+      bindtap="onTap"
+    >
+      <view class="r-avatar">{{item.kindEmoji}}</view>
+      <view class="r-info">
+        <view class="r-title ellipsis">{{item.title}}</view>
+        <view class="r-desc">{{item.petKind}}{{item.petBreed ? ' · ' + item.petBreed : ''}} · 浏览于 {{item.timeText}}</view>
+      </view>
+      <text class="r-arrow">›</text>
+    </view>
+  </block>
+  <view wx:else class="empty">暂无浏览记录，去问诊广场逛逛吧</view>
+</view>

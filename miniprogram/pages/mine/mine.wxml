@@ -91,23 +91,24 @@
     <view wx:else class="empty card" bindtap="onRemindersTap">暂无健康计划，点击新建提醒</view>
   </view>
 
-  <!-- 问诊记录 -->
+  <!-- 问诊记录：仅展示最新一条，点击“全部”进入完整列表 -->
   <view class="section">
     <view class="sec-head">
       <text class="sec-title">问诊记录</text>
+      <text wx:if="{{logged && records.length}}" class="sec-more" bindtap="onRecordsListTap">全部 ›</text>
     </view>
 
     <view wx:if="{{!logged}}" class="empty card">登录后查看问诊记录</view>
     <block wx:elif="{{records.length}}">
-      <view class="rec-card card" wx:for="{{records}}" wx:key="_id" data-id="{{item._id}}" bindtap="onRecordTap">
-        <view class="r-avatar">{{item.petAvatar && !item.avatarIsImage ? item.petAvatar : '💬'}}</view>
+      <view class="rec-card card" data-id="{{records[0]._id}}" bindtap="onRecordTap">
+        <view class="r-avatar">{{records[0].petAvatar && !records[0].avatarIsImage ? records[0].petAvatar : '💬'}}</view>
         <view class="r-info">
           <view class="r-title-line">
-            <text class="r-title ellipsis">{{item.petName || item.title || '问诊记录'}}</text>
-            <text wx:if="{{item.published}}" class="r-badge">已发布</text>
-            <text wx:if="{{item.firstQuestion}}" class="r-question">{{item.firstQuestion}}</text>
+            <text class="r-title ellipsis">{{records[0].petName || records[0].title || '问诊记录'}}</text>
+            <text wx:if="{{records[0].published}}" class="r-badge">已发布</text>
+            <text wx:if="{{records[0].firstQuestion}}" class="r-question">{{records[0].firstQuestion}}</text>
           </view>
-          <view class="r-desc">{{item.timeText}}</view>
+          <view class="r-desc">{{records[0].timeText}}</view>
         </view>
         <text class="r-arrow">›</text>
       </view>
@@ -115,27 +116,48 @@
     <view wx:else class="empty card">暂无问诊记录</view>
   </view>
 
-  <!-- 我的发布 -->
+  <!-- 我的发布：仅展示最新一条，点击“全部”进入完整列表 -->
   <view class="section">
     <view class="sec-head">
       <text class="sec-title">我的发布</text>
-      <text wx:if="{{logged && myPosts.length}}" class="sec-more" bindtap="onSquareTap">去广场 ›</text>
+      <text wx:if="{{logged && myPosts.length}}" class="sec-more" bindtap="onMyPostsListTap">全部 ›</text>
     </view>
 
     <view wx:if="{{!logged}}" class="empty card">登录后查看我的发布</view>
     <block wx:elif="{{myPosts.length}}">
-      <view class="rec-card card" wx:for="{{myPosts}}" wx:key="_id" data-id="{{item._id}}" bindtap="onMyPostTap">
-        <view class="r-avatar">{{item.petKind === '猫' ? '🐱' : item.petKind === '狗' ? '🐶' : '🐾'}}</view>
+      <view class="rec-card card" data-id="{{myPosts[0]._id}}" bindtap="onMyPostTap">
+        <view class="r-avatar">{{myPosts[0].petKind === '猫' ? '🐱' : myPosts[0].petKind === '狗' ? '🐶' : '🐾'}}</view>
         <view class="r-info">
           <view class="r-title-line">
-            <text class="r-title ellipsis">{{item.title}}</text>
+            <text class="r-title ellipsis">{{myPosts[0].title}}</text>
           </view>
-          <view class="r-desc">{{item.petKind}}{{item.petBreed ? ' · ' + item.petBreed : ''}} · {{item.timeText}}</view>
+          <view class="r-desc">{{myPosts[0].petKind}}{{myPosts[0].petBreed ? ' · ' + myPosts[0].petBreed : ''}} · {{myPosts[0].timeText}}</view>
         </view>
-        <text class="del-link" data-id="{{item._id}}" catchtap="onMyPostDelete">删除</text>
+        <text class="r-arrow">›</text>
       </view>
     </block>
-    <view wx:else class="empty card">还没有发布过内容</view>
+    <view wx:else class="empty card">还没有发布过内容，去广场发布吧</view>
+  </view>
+
+  <!-- 历史浏览记录：仅展示最新一条，点击“全部”进入完整列表 -->
+  <view class="section">
+    <view class="sec-head">
+      <text class="sec-title">历史浏览记录</text>
+      <text wx:if="{{logged && history.length}}" class="sec-more" bindtap="onHistoryTap">全部 ›</text>
+    </view>
+
+    <view wx:if="{{!logged}}" class="empty card">登录后查看浏览记录</view>
+    <block wx:elif="{{history.length}}">
+      <view class="rec-card card" data-id="{{history[0]._id}}" bindtap="onHistoryItemTap">
+        <view class="r-avatar">{{history[0].kindEmoji}}</view>
+        <view class="r-info">
+          <view class="r-title ellipsis">{{history[0].title}}</view>
+          <view class="r-desc">{{history[0].petKind}}{{history[0].petBreed ? ' · ' + history[0].petBreed : ''}} · 浏览于 {{history[0].timeText}}</view>
+        </view>
+        <text class="r-arrow">›</text>
+      </view>
+    </block>
+    <view wx:else class="empty card">暂无浏览记录，去广场逛逛吧</view>
   </view>
 
   <!-- 我的收藏 -->
@@ -162,11 +184,6 @@
 
   <!-- 菜单 -->
   <view wx:if="{{logged}}" class="menu card">
-    <view wx:if="{{isAdmin}}" class="menu-item" bindtap="onAdminTap">
-      <text class="mi-icon">🛡️</text>
-      <text class="mi-label">管理员后台</text>
-      <text class="mi-arrow">›</text>
-    </view>
     <view class="menu-item" bindtap="onSettingsTap">
       <text class="mi-icon">⚙️</text>
       <text class="mi-label">设置与协议</text>

@@ -1,0 +1,80 @@
+.page {
+  min-height: 100vh;
+  padding: 80rpx 48rpx calc(40rpx + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, #EEF2FF 0%, #F5F6FA 40%);
+}
+
+.brand {
+  text-align: center;
+  padding: 20rpx 0 60rpx;
+}
+
+.logo {
+  width: 132rpx;
+  height: 132rpx;
+  margin: 0 auto 24rpx;
+  border-radius: 36rpx;
+  background: linear-gradient(135deg, #6C8CFF 0%, #9B7BFF 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64rpx;
+  box-shadow: 0 12rpx 30rpx rgba(91, 124, 250, 0.3);
+}
+
+.app-name {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.slogan {
+  font-size: 26rpx;
+  color: var(--text-sub);
+  margin-top: 10rpx;
+}
+
+.form {
+  padding: 12rpx 32rpx;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  height: 108rpx;
+  border-bottom: 2rpx solid #F0F1F5;
+}
+
+.field.last {
+  border-bottom: none;
+}
+
+.label {
+  width: 130rpx;
+  font-size: 28rpx;
+  color: var(--text-sub);
+}
+
+.input {
+  flex: 1;
+  font-size: 30rpx;
+  color: var(--text-main);
+}
+
+.ph {
+  color: #C2C6D0;
+}
+
+.submit {
+  width: 100%;
+  margin-top: 48rpx;
+}
+
+.hint {
+  text-align: center;
+  font-size: 22rpx;
+  color: var(--text-light);
+  margin-top: 32rpx;
+  padding: 0 40rpx;
+  line-height: 1.7;
+}

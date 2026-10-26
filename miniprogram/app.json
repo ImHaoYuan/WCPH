@@ -11,12 +11,16 @@
     "pages/addPet/addPet",
     "pages/chat/chat",
     "pages/recordDetail/recordDetail",
+    "pages/recordsList/recordsList",
+    "pages/myPosts/myPosts",
+    "pages/history/history",
     "pages/reminders/reminders",
     "pages/reminderEdit/reminderEdit",
     "pages/hospitals/hospitals",
     "pages/firstaid/firstaid",
     "pages/topic/topic",
     "pages/admin/admin",
+    "pages/adminLogin/adminLogin",
     "pages/settings/settings"
   ],
   "window": {

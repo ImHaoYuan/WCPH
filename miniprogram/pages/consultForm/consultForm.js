@@ -1,11 +1,27 @@
 const cloud = require('../../utils/cloud')
+const util = require('../../utils/util')
 
 const MAX_IMAGES = 3
 // 简单版图片质检：压缩后体积过小，疑似模糊/无内容，提示重拍（仍允许提交）
 const MIN_IMAGE_SIZE = 15 * 1024
 
+const LEVEL_TEXT = {
+  red: '🚨 紧急 · 建议立即就医',
+  yellow: '⚠️ 需观察 · 建议尽快就诊',
+  green: '🌿 可居家护理'
+}
+
 Page({
   data: {
+    mode: 'form',
+    levelText: '',
+
+    // 宠物档案
+    pets: [],
+    petNames: [],
+    petIndex: -1,
+    selectedPet: null,
+
     kinds: ['猫', '狗', '其他'],
     kindIndex: -1,
     parts: ['皮肤', '耳朵', '眼睛', '口腔', '粪便', '其他'],
@@ -16,13 +32,32 @@ Page({
     itchIndex: -1,
     appetiteOptions: ['正常', '下降', '拒食'],
     appetiteIndex: -1,
+    stoolOptions: ['正常', '软便', '腹泻', '便秘', '未观察'],
+    stoolIndex: -1,
     vaccineOptions: ['齐全', '不齐全', '未知'],
     vaccineIndex: -1,
     desc: '',
     images: [],
     uploading: false,
     submitting: false,
-    maxImages: MAX_IMAGES
+    maxImages: MAX_IMAGES,
+
+    report: { level: 'green', summary: '', content: '', followUp: [] },
+    savedId: ''
+  },
+
+  onLoad() {
+    if (getApp().isLoggedIn()) this.loadPets()
+  },
+
+  loadPets() {
+    return cloud
+      .listPets()
+      .then(list => {
+        const pets = list || []
+        this.setData({ pets, petNames: pets.map(p => p.name) })
+      })
+      .catch(err => console.warn('[consultForm] 宠物列表加载失败', err && err.message))
   },
 
   // 通用选项点击：data-key 对应 data 中的下标字段名
@@ -30,6 +65,19 @@ Page({
     const key = e.currentTarget.dataset.key
     const i = Number(e.currentTarget.dataset.i)
     this.setData({ [key]: i })
+  },
+
+  onPetPick(e) {
+    const petIndex = Number(e.detail.value)
+    const pet = this.data.pets[petIndex] || null
+    const patch = { petIndex, selectedPet: pet }
+    // 选择宠物后自动匹配宠物类型（犬类→狗、猫类→猫、其他→其他），仍可手动修改
+    if (pet && pet.category) {
+      const kind = pet.category.indexOf('犬') >= 0 ? '狗' : pet.category.indexOf('猫') >= 0 ? '猫' : '其他'
+      const ki = this.data.kinds.indexOf(kind)
+      if (ki >= 0) patch.kindIndex = ki
+    }
+    this.setData(patch)
   },
 
   onChooseImage() {
@@ -89,6 +137,25 @@ Page({
     this.setData({ desc: e.detail.value })
   },
 
+  buildText() {
+    const d = this.data
+    const lines = []
+    if (d.selectedPet) {
+      lines.push(
+        `宠物：${d.selectedPet.name}${d.selectedPet.breed ? '（' + d.selectedPet.breed + '）' : ''}`
+      )
+    }
+    lines.push(`宠物类型：${d.kinds[d.kindIndex]}`)
+    lines.push(`患处部位：${d.parts[d.partIndex]}`)
+    if (d.durationIndex >= 0) lines.push(`病程：${d.durations[d.durationIndex]}`)
+    if (d.itchIndex >= 0) lines.push(`是否瘙痒：${d.itchOptions[d.itchIndex]}`)
+    if (d.appetiteIndex >= 0) lines.push(`精神食欲：${d.appetiteOptions[d.appetiteIndex]}`)
+    if (d.stoolIndex >= 0) lines.push(`排便情况：${d.stoolOptions[d.stoolIndex]}`)
+    if (d.vaccineIndex >= 0) lines.push(`疫苗情况：${d.vaccineOptions[d.vaccineIndex]}`)
+    lines.push('症状描述：' + d.desc.trim().slice(0, 500))
+    return lines.join('；')
+  },
+
   onSubmit() {
     if (!getApp().requireLogin()) return
     if (this.data.submitting) return
@@ -100,24 +167,93 @@ Page({
       wx.showToast({ title: '请选择患处部位', icon: 'none' })
       return
     }
-    if (!this.data.images.length && !this.data.desc.trim()) {
-      wx.showToast({ title: '请上传患处照片或填写症状描述', icon: 'none' })
+    if (!this.data.desc.trim()) {
+      wx.showToast({ title: '请填写症状描述', icon: 'none' })
       return
     }
 
     const d = this.data
-    const lines = [`宠物类型：${d.kinds[d.kindIndex]}`, `患处部位：${d.parts[d.partIndex]}`]
-    if (d.durationIndex >= 0) lines.push(`病程：${d.durations[d.durationIndex]}`)
-    if (d.itchIndex >= 0) lines.push(`是否瘙痒：${d.itchOptions[d.itchIndex]}`)
-    if (d.appetiteIndex >= 0) lines.push(`精神食欲：${d.appetiteOptions[d.appetiteIndex]}`)
-    if (d.vaccineIndex >= 0) lines.push(`疫苗情况：${d.vaccineOptions[d.vaccineIndex]}`)
-    const text =
-      lines.join('；') + '。' + (d.desc.trim() ? '\n补充描述：' + d.desc.trim().slice(0, 300) : '')
+    const text = this.buildText()
+    const cloudImages = d.images.filter(u => typeof u === 'string' && u.indexOf('cloud://') === 0)
+    const pet = d.selectedPet || {}
 
-    // 草稿图片与结构化文本交给聊天页，进入后自动发送问诊
-    getApp()._chatDraftMedia = { images: d.images.slice(), video: '' }
-    getApp()._chatDraftText = text
     this.setData({ submitting: true })
-    wx.navigateTo({ url: '/pages/chat/chat?auto=1' })
+    wx.showLoading({ title: 'AI 分析中', mask: true })
+
+    cloud
+      .assistantAsk(text, pet, cloudImages)
+      .catch(() => {
+        // 真实 AI 不可用时降级本地规则引擎，保证功能可用
+        const reply = util.aiConsult(text, pet, { images: d.images, video: '' })
+        return Promise.resolve({
+          level: reply.level,
+          summary: '',
+          content: reply.content,
+          followUp: []
+        })
+      })
+      .then(data => {
+        wx.hideLoading()
+        const level = (data && data.level) || 'green'
+        const summary = (data && data.summary) || ''
+        const content = (data && data.content) || ''
+        const followUp = (data && data.followUp) || []
+        this.setData({
+          mode: 'report',
+          submitting: false,
+          levelText: LEVEL_TEXT[level] || LEVEL_TEXT.green,
+          report: { level, summary, content, followUp }
+        })
+        this.saveRecord(text, level, summary, content)
+      })
+      .catch(err => {
+        wx.hideLoading()
+        this.setData({ submitting: false })
+        cloud.toastError(err)
+      })
+  },
+
+  // 报告生成后自动保存为问诊记录
+  saveRecord(text, level, summary, content) {
+    const pet = this.data.selectedPet || {}
+    const title = (this.data.desc.trim() || '症状拍照问诊').slice(0, 20)
+    const messages = [
+      { role: 'user', content: text, time: util.formatDateTime(Date.now()), images: this.data.images }
+    ]
+    const aiContent = summary ? `📋 ${summary}\n\n${content}` : content
+    messages.push({ role: 'ai', content: aiContent, time: util.formatDateTime(Date.now()), level })
+    cloud
+      .addRecord({
+        title,
+        messages,
+        petId: pet._id || '',
+        petName: pet.name || '',
+        petAvatar: pet.avatar && pet.avatar.indexOf('cloud://') !== 0 ? pet.avatar : ''
+      })
+      .then(res => {
+        if (res && res._id) this.setData({ savedId: res._id })
+      })
+      .catch(err => console.error('保存问诊记录失败', err && err.message))
+  },
+
+  resetForm() {
+    this.setData({
+      mode: 'form',
+      kindIndex: -1,
+      partIndex: -1,
+      durationIndex: -1,
+      itchIndex: -1,
+      appetiteIndex: -1,
+      stoolIndex: -1,
+      vaccineIndex: -1,
+      desc: '',
+      images: [],
+      report: { level: 'green', summary: '', content: '', followUp: [] },
+      savedId: ''
+    })
+  },
+
+  finish() {
+    wx.navigateBack()
   }
 })
