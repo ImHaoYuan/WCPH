@@ -44,8 +44,14 @@ Page({
       })
   },
 
+  // 点击消息：跳转到问诊广场并定位到对应帖子
   onTap(e) {
     const pid = e.currentTarget.dataset.pid
-    if (pid) wx.navigateTo({ url: '/pages/postDetail/postDetail?id=' + pid })
+    if (!pid) {
+      wx.showToast({ title: '该消息未关联帖子', icon: 'none' })
+      return
+    }
+    getApp()._squareTargetPostId = pid
+    wx.switchTab({ url: '/pages/square/square' })
   }
 })

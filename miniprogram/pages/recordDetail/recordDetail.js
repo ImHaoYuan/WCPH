@@ -105,7 +105,9 @@ Page({
                 wx.hideLoading()
                 this.setData({ publishing: false, published: true })
                 if (res2 && res2._id) {
-                  cloud.markRecordPublished(this.data.id, res2._id).catch(() => {})
+                  cloud.markRecordPublished(this.data.id, res2._id).catch(() => {
+                    wx.showToast({ title: '已发布，但记录状态同步失败', icon: 'none' })
+                  })
                 }
                 wx.showToast({ title: '已发布到广场', icon: 'success' })
               })

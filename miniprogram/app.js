@@ -1,11 +1,13 @@
 const config = require('./config')
 
 const USER_KEY = 'pet_user'
+const ADMIN_KEY = 'pet_admin'
 
 App({
   globalData: {
     openid: null,
     userInfo: null,
+    adminInfo: null,
     envId: config.envId
   },
 
@@ -28,6 +30,17 @@ App({
       this.globalData.userInfo = cached
       this.globalData.openid = cached.openid || null
     }
+    const adminCached = wx.getStorageSync(ADMIN_KEY)
+    if (adminCached) {
+      this.globalData.adminInfo = adminCached
+    }
+    if (!this.isLoggedIn()) {
+      wx.showToast({
+        title: '登录过期，请先登录',
+        icon: 'none',
+        duration: 2000
+      })
+    }
   },
 
   isLoggedIn() {
@@ -48,6 +61,25 @@ App({
     this.globalData.userInfo = null
     this.globalData.openid = null
     wx.removeStorageSync(USER_KEY)
+  },
+
+  // ===== 管理员登录态（独立于普通用户登录态） =====
+  isAdminLoggedIn() {
+    return !!this.globalData.adminInfo
+  },
+
+  getAdmin() {
+    return this.globalData.adminInfo
+  },
+
+  setAdminLogin(adminInfo) {
+    this.globalData.adminInfo = adminInfo
+    wx.setStorageSync(ADMIN_KEY, adminInfo)
+  },
+
+  logoutAdmin() {
+    this.globalData.adminInfo = null
+    wx.removeStorageSync(ADMIN_KEY)
   },
 
   // 需要登录的操作统一走这里：已登录返回 true，未登录跳转登录页并返回 false

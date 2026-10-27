@@ -105,3 +105,99 @@
   background: #FFF0F0;
   color: var(--danger);
 }
+
+/* 账号管理表单 */
+.acc-form {
+  margin-top: 24rpx;
+  padding: 24rpx 28rpx;
+}
+
+.acc-form-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  margin-bottom: 8rpx;
+}
+
+.acc-field {
+  display: flex;
+  align-items: center;
+  height: 96rpx;
+  border-bottom: 2rpx solid #F0F1F5;
+}
+
+.acc-label {
+  width: 120rpx;
+  flex: 0 0 120rpx;
+  font-size: 27rpx;
+  color: var(--text-sub);
+}
+
+.acc-input {
+  flex: 1;
+  font-size: 28rpx;
+}
+
+.ph {
+  color: #C2C6D0;
+}
+
+.acc-add {
+  width: 100%;
+  margin-top: 28rpx;
+  font-size: 28rpx;
+  line-height: 2.4;
+}
+
+/* 数据概览 */
+.stats-grid {
+  margin-top: 24rpx;
+  display: flex;
+  flex-wrap: wrap;
+  padding: 12rpx 0;
+}
+
+.stat-cell {
+  width: 50%;
+  text-align: center;
+  padding: 24rpx 0;
+}
+
+.stat-num {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: var(--text-sub);
+  margin-top: 6rpx;
+}
+
+.sec-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  margin: 28rpx 8rpx 8rpx;
+}
+
+/* 无权限提示 */
+.go-login {
+  margin-top: 32rpx;
+  width: 320rpx;
+  font-size: 28rpx;
+  line-height: 2.4;
+}
+
+.logout {
+  margin: 48rpx 8rpx 0;
+  background: #fff;
+  color: var(--danger);
+  border-radius: 999rpx;
+  font-size: 30rpx;
+  line-height: 2.8;
+  box-shadow: var(--shadow);
+}
+
+.logout::after {
+  border: none;
+}

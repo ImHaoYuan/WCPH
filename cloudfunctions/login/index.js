@@ -1,10 +1,20 @@
 const cloud = require('wx-server-sdk')
+const crypto = require('crypto')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 
 const USERS = 'users'
 const CODES = 'sms_codes'
+const ACCOUNTS = 'accounts'
+const ADMINS = 'admins'
+
+// 首次管理员登录时自动播种的默认管理员账号
+const DEFAULT_ADMIN = { username: 'admin', password: 'Admin@123456' }
+
+function hashPwd(password, salt) {
+  return crypto.createHash('sha256').update(salt + '|' + password).digest('hex')
+}
 
 async function ensureCollection(name) {
   try {
@@ -21,13 +31,20 @@ async function upsertUser(openid, phone, extra) {
   const now = Date.now()
   if (exist.data.length) {
     const doc = exist.data[0]
-    await col.doc(doc._id).update({
-      data: Object.assign({ phone, updatedAt: now }, extra || {})
-    })
-    return Object.assign({}, doc, { phone, openid }, extra || {})
+    const patch = Object.assign({ updatedAt: now }, extra || {})
+    if (phone) patch.phone = phone
+    await col.doc(doc._id).update({ data: patch })
+    return Object.assign({}, doc, patch, { openid })
   }
   const data = Object.assign(
-    { _openid: openid, phone, createdAt: now, updatedAt: now },
+    {
+      _openid: openid,
+      phone: phone || '',
+      nickname: phone ? '微信用户' + phone.slice(-4) : ((extra && (extra.nickname || extra.username)) || '宠物用户'),
+      avatarUrl: '',
+      createdAt: now,
+      updatedAt: now
+    },
     extra || {}
   )
   const res = await col.add({ data })
@@ -79,10 +96,7 @@ exports.main = async (event) => {
       if (rec.expireAt < Date.now()) {
         return { ok: false, msg: '验证码已过期，请重新获取' }
       }
-      const user = await upsertUser(OPENID, phone, {
-        nickname: '微信用户' + phone.slice(-4),
-        avatarUrl: ''
-      })
+      const user = await upsertUser(OPENID, phone)
       await db.collection(CODES).doc(rec._id).remove()
       return { ok: true, data: { openid: OPENID, phone, nickname: user.nickname, avatarUrl: user.avatarUrl } }
     }
@@ -97,10 +111,7 @@ exports.main = async (event) => {
       if (!phone) {
         return { ok: false, msg: '未获取到手机号' }
       }
-      const user = await upsertUser(OPENID, phone, {
-        nickname: '微信用户' + phone.slice(-4),
-        avatarUrl: ''
-      })
+      const user = await upsertUser(OPENID, phone)
       return { ok: true, data: { openid: OPENID, phone, nickname: user.nickname, avatarUrl: user.avatarUrl } }
     }
 
@@ -119,6 +130,84 @@ exports.main = async (event) => {
         ok: true,
         data: { openid: OPENID, phone: user.phone, nickname: user.nickname, avatarUrl: user.avatarUrl }
       }
+    }
+
+    // ===== 账号密码登录（账号由管理员在后台创建） =====
+    if (action === 'accountLogin') {
+      const username = String(event.username || '').trim()
+      const password = String(event.password || '')
+      if (!username || !password) {
+        return { ok: false, msg: '请输入账号和密码' }
+      }
+      await ensureCollection(ACCOUNTS)
+      const exist = await db
+        .collection(ACCOUNTS)
+        .where({ username })
+        .limit(1)
+        .get()
+      if (!exist.data.length) {
+        return { ok: false, msg: '账号不存在，请联系管理员添加' }
+      }
+      const acc = exist.data[0]
+      if (hashPwd(password, acc.salt || '') !== acc.passwordHash) {
+        return { ok: false, msg: '密码错误' }
+      }
+      await upsertUser(OPENID, '', {
+        accountId: acc._id,
+        username
+      })
+      return {
+        ok: true,
+        data: {
+          openid: OPENID,
+          accountId: acc._id,
+          username,
+          nickname: acc.nickname || username,
+          phone: '',
+          role: 'user'
+        }
+      }
+    }
+
+    // ===== 管理员账号密码登录 =====
+    if (action === 'adminLogin') {
+      const username = String(event.username || '').trim()
+      const password = String(event.password || '')
+      if (!username || !password) {
+        return { ok: false, msg: '请输入账号和密码' }
+      }
+      await ensureCollection(ADMINS)
+      const exist = await db
+        .collection(ADMINS)
+        .where({ username })
+        .limit(1)
+        .get()
+      if (!exist.data.length) {
+        // 首次登录：自动播种默认管理员（admin / Admin@123456）
+        if (username === DEFAULT_ADMIN.username && password === DEFAULT_ADMIN.password) {
+          const salt = crypto.randomBytes(8).toString('hex')
+          await db.collection(ADMINS).add({
+            data: {
+              _openid: OPENID,
+              username,
+              passwordHash: hashPwd(password, salt),
+              salt,
+              createdAt: Date.now()
+            }
+          })
+          return { ok: true, data: { openid: OPENID, username, role: 'admin' } }
+        }
+        return { ok: false, msg: '管理员账号不存在' }
+      }
+      const acc = exist.data[0]
+      if (hashPwd(password, acc.salt || '') !== acc.passwordHash) {
+        return { ok: false, msg: '密码错误' }
+      }
+      // 绑定当前 openid：管理员换设备时以账号密码为准
+      if (acc._openid !== OPENID) {
+        await db.collection(ADMINS).doc(acc._id).update({ data: { _openid: OPENID } })
+      }
+      return { ok: true, data: { openid: OPENID, username, role: 'admin' } }
     }
 
     return { ok: false, msg: '未知操作' }

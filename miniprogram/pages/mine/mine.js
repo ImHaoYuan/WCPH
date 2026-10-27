@@ -1,5 +1,6 @@
 const cloud = require('../../utils/cloud')
 const util = require('../../utils/util')
+const history = require('../../utils/history')
 
 function isImageUrl(a) {
   return typeof a === 'string' && /^(cloud:\/\/|https?:\/\/|\/|wxfile:\/\/)/.test(a)
@@ -20,7 +21,7 @@ Page({
     reminders: [],
     myPosts: [],
     favPosts: [],
-    isAdmin: false
+    history: []
   },
 
   onShow() {
@@ -30,7 +31,12 @@ Page({
     if (logged) {
       this.loadData()
     } else {
-      this.setData({ pets: [], records: [], reminders: [], myPosts: [], favPosts: [], isAdmin: false })
+      this.setData({ pets: [], records: [], reminders: [], myPosts: [], favPosts: [], history: [] })
+      wx.showToast({
+        title: '登录过期，请先登录',
+        icon: 'none',
+        duration: 2000
+      })
     }
   },
 
@@ -128,16 +134,23 @@ Page({
       })
       .catch(err => console.warn('[mine] 我的发布加载失败', err && err.message))
 
-    const p5 = cloud
-      .squareAmIAdmin()
-      .then(res => {
-        this.setData({ isAdmin: !!(res && res.isAdmin) })
-      })
-      .catch(() => {})
+    const p5 = this.loadFavPosts()
+    this.loadHistory()
 
-    const p6 = this.loadFavPosts()
+    return Promise.all([p1, p2, p3, p4, p5])
+  },
 
-    return Promise.all([p1, p2, p3, p4, p5, p6])
+  // 历史浏览记录（本地存储，同步读取）
+  loadHistory() {
+    const list = history
+      .list()
+      .map(p =>
+        Object.assign({}, p, {
+          kindEmoji: KIND_EMOJI[p.petKind] || '🐾',
+          timeText: util.formatDateTime(p.viewedAt || p.createdAt)
+        })
+      )
+    this.setData({ history: list })
   },
 
   // 我的收藏：优先云端批量取帖（数据最新），云端不可用时回退本地快照兜底
@@ -329,6 +342,26 @@ Page({
     wx.navigateTo({ url: '/pages/recordDetail/recordDetail?id=' + e.currentTarget.dataset.id })
   },
 
+  // 全部问诊记录
+  onRecordsListTap() {
+    wx.navigateTo({ url: '/pages/recordsList/recordsList' })
+  },
+
+  // 全部我的发布
+  onMyPostsListTap() {
+    wx.navigateTo({ url: '/pages/myPosts/myPosts' })
+  },
+
+  // 全部历史浏览记录
+  onHistoryTap() {
+    wx.navigateTo({ url: '/pages/history/history' })
+  },
+
+  // 点击某条浏览记录：跳转对应帖子
+  onHistoryItemTap(e) {
+    wx.navigateTo({ url: '/pages/postDetail/postDetail?id=' + e.currentTarget.dataset.id })
+  },
+
   onRemindersTap() {
     if (!getApp().requireLogin()) return
     wx.navigateTo({ url: '/pages/reminders/reminders' })
@@ -340,10 +373,6 @@ Page({
 
   onMyPostTap(e) {
     wx.navigateTo({ url: '/pages/postDetail/postDetail?id=' + e.currentTarget.dataset.id })
-  },
-
-  onSquareTap() {
-    wx.switchTab({ url: '/pages/square/square' })
   },
 
   onFavPostTap(e) {
@@ -370,34 +399,6 @@ Page({
     wx.showToast({ title: '已取消收藏', icon: 'none' })
   },
 
-  onMyPostDelete(e) {
-    const id = e.currentTarget.dataset.id
-    wx.showModal({
-      title: '删除帖子',
-      content: '确定删除该帖子吗？删除后不可恢复。',
-      confirmColor: '#FF5A5F',
-      success: res => {
-        if (!res.confirm) return
-        wx.showLoading({ title: '删除中' })
-        cloud
-          .squareRemove(id)
-          .then(() => {
-            wx.hideLoading()
-            wx.showToast({ title: '已删除', icon: 'success' })
-            this.setData({ myPosts: this.data.myPosts.filter(p => p._id !== id) })
-          })
-          .catch(err => {
-            wx.hideLoading()
-            cloud.toastError(err)
-          })
-      }
-    })
-  },
-
-  onAdminTap() {
-    wx.navigateTo({ url: '/pages/admin/admin' })
-  },
-
   onSettingsTap() {
     wx.navigateTo({ url: '/pages/settings/settings' })
   },
@@ -414,6 +415,7 @@ Page({
       success: res => {
         if (!res.confirm) return
         getApp().logout()
+        getApp().logoutAdmin()
         this.setData({ logged: false, user: {}, pets: [], petIndex: 0, currentPet: {}, records: [] })
         wx.showToast({ title: '已退出登录', icon: 'none' })
       }

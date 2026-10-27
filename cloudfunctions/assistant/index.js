@@ -40,8 +40,8 @@ function callZhipu(payload) {
           Authorization: `Bearer ${process.env.ZHIPU_API_KEY}`,
           'Content-Length': Buffer.byteLength(body)
         },
-        // 单次请求上限 25s：两级模型回退最坏 50s，控制在函数 60s 超时内
-        timeout: 25000
+        // 两级模型回退与前端 20s 超时预算保持一致
+        timeout: 7000
       },
       res => {
         let data = ''
