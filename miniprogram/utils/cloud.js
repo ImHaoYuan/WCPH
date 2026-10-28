@@ -3,9 +3,9 @@
  * 依赖云函数：login / pet / record / assistant / square / reminder
  */
 
-function call(name, data) {
+function call(name, data, timeout) {
   return wx.cloud
-    .callFunction({ name, data, timeout: 60000 })
+    .callFunction({ name, data, timeout: timeout || 60000 })
     .then(res => {
       const result = res && res.result
       if (result && result.ok === false) {
@@ -76,10 +76,10 @@ module.exports = {
 
   // ===== AI 问诊助手 =====
   assistantAsk: (question, petProfile, fileIDs) =>
-    call('assistant', { question, petProfile, fileIDs }),
+    call('assistant', { question, petProfile, fileIDs }, 20000),
 
   // ===== 问诊广场 =====
-  squareList: page => call('square', { action: 'list', page }),
+  squareList: (page, feed, feedSeed) => call('square', { action: 'list', page, feed, feedSeed }),
   squareFeatured: () => call('square', { action: 'featured' }),
   squareOfficial: () => call('square', { action: 'officialList' }),
   squareGet: id => call('square', { action: 'get', id }),

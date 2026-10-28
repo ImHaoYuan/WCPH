@@ -251,6 +251,19 @@ async function isAdmin(openid) {
   }
 }
 
+function shufflePosts(list, seed) {
+  const result = list.slice()
+  let state = (Number(seed) || Date.now()) >>> 0
+  for (let i = result.length - 1; i > 0; i--) {
+    state = (state * 1664525 + 1013904223) >>> 0
+    const j = state % (i + 1)
+    const temp = result[i]
+    result[i] = result[j]
+    result[j] = temp
+  }
+  return result
+}
+
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext()
   const action = event.action
@@ -262,13 +275,23 @@ exports.main = async (event) => {
     if (action === 'list') {
       const page = Math.max(0, parseInt(event.page, 10) || 0)
       let posts = []
+      let hasMore = false
       try {
-        const res = await col
-          .orderBy('createdAt', 'desc')
-          .skip(page * PAGE_SIZE)
-          .limit(PAGE_SIZE)
-          .get()
-        posts = res.data.filter(p => !p.official)
+        if (event.feed === 'recommend') {
+          const res = await col.where({ official: _.neq(true) }).limit(100).get()
+          const shuffled = shufflePosts(res.data, event.feedSeed)
+          posts = shuffled.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+          hasMore = (page + 1) * PAGE_SIZE < shuffled.length
+        } else {
+          const res = await col
+            .where({ official: _.neq(true) })
+            .orderBy('createdAt', 'desc')
+            .skip(page * PAGE_SIZE)
+            .limit(PAGE_SIZE)
+            .get()
+          posts = res.data
+          hasMore = res.data.length === PAGE_SIZE
+        }
       } catch (e) {
         posts = []
       }
@@ -293,15 +316,17 @@ exports.main = async (event) => {
           })
         }
         const res = await col
+          .where({ official: _.neq(true) })
           .orderBy('createdAt', 'desc')
           .skip(0)
           .limit(PAGE_SIZE)
           .get()
-        posts = res.data.filter(p => !p.official)
+        posts = res.data
+        hasMore = res.data.length === PAGE_SIZE
       }
       // 服务端标记是否本人发布（不依赖前端登录态）
       posts = posts.map(p => Object.assign({}, p, { mine: p._openid === OPENID }))
-      return { ok: true, data: { list: posts, page, hasMore: posts.length === PAGE_SIZE } }
+      return { ok: true, data: { list: posts, page, hasMore } }
     }
 
     // 精选好帖：点赞数 ≥ 100，先按赞数、再按"到达该赞数的时间"（lastLikeAt）倒序：
@@ -310,7 +335,11 @@ exports.main = async (event) => {
       await ensureFeaturedDemos(col)
       let posts = []
       try {
-        const res = await col.orderBy('createdAt', 'desc').limit(100).get()
+        const res = await col
+          .where({ official: _.neq(true), likeCount: _.gte(100) })
+          .orderBy('likeCount', 'desc')
+          .limit(100)
+          .get()
         posts = res.data
           .map(p =>
             Object.assign({}, p, {
@@ -450,7 +479,12 @@ exports.main = async (event) => {
       if (!content) return { ok: false, msg: '评论不能为空' }
       const bad = await checkText(content, OPENID)
       if (bad) return { ok: false, msg: bad }
-      const comment = { _openid: OPENID, content, createdAt: Date.now() }
+      const comment = {
+        commentId: Date.now().toString(36) + Math.random().toString(36).slice(2, 10),
+        _openid: OPENID,
+        content,
+        createdAt: Date.now()
+      }
       await col.doc(event.id).update({
         data: { comments: _.push([comment]) }
       })
@@ -474,13 +508,13 @@ exports.main = async (event) => {
       if (!res.data.length) return { ok: false, msg: '帖子不存在' }
       const post = res.data[0]
       const comments = post.comments || []
-      const target = comments.find(c => String(c.createdAt) === commentId)
+      const target = comments.find(c => String(c.commentId || c.createdAt) === commentId)
       if (!target) return { ok: false, msg: '评论不存在' }
       if (target._openid !== OPENID && post._openid !== OPENID && !(await isAdmin(OPENID))) {
         return { ok: false, msg: '无权删除该评论' }
       }
       await col.doc(event.id).update({
-        data: { comments: comments.filter(c => String(c.createdAt) !== commentId) }
+        data: { comments: _.pull(target) }
       })
       return { ok: true, data: { id: event.id, commentId } }
     }
@@ -493,6 +527,11 @@ exports.main = async (event) => {
       if (!title || !excerpt) return { ok: false, msg: '内容为空' }
       const bad = await checkText(title + '\n' + excerpt, OPENID)
       if (bad) return { ok: false, msg: bad }
+      const recordId = String(p.recordId || '').slice(0, 64)
+      if (recordId) {
+        const existing = await col.where({ _openid: OPENID, recordId }).limit(1).get()
+        if (existing.data.length) return { ok: true, data: { _id: existing.data[0]._id } }
+      }
       const data = {
         _openid: OPENID,
         petKind: String(p.petKind || '宠物').slice(0, 10),
@@ -501,7 +540,7 @@ exports.main = async (event) => {
         title,
         excerpt,
         image: typeof p.image === 'string' ? p.image.slice(0, 300) : '',
-        recordId: String(p.recordId || '').slice(0, 64),
+        recordId,
         likes: [],
         likeCount: 0,
         comments: [],
@@ -521,6 +560,9 @@ exports.main = async (event) => {
         return { ok: false, msg: '无权删除该帖子' }
       }
       await col.doc(event.id).remove()
+      try {
+        await db.collection(NOTIFY_COL).where({ postId: event.id }).remove()
+      } catch (e) {}
       return { ok: true, data: { id: event.id } }
     }
 
@@ -562,6 +604,9 @@ exports.main = async (event) => {
       const res = await col.where({ _id: event.id }).limit(1).get()
       if (!res.data.length) return { ok: false, msg: '帖子不存在' }
       await col.doc(event.id).remove()
+      try {
+        await db.collection(NOTIFY_COL).where({ postId: event.id }).remove()
+      } catch (e) {}
       return { ok: true, data: { id: event.id } }
     }
 

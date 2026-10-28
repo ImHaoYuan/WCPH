@@ -2,6 +2,7 @@ const cloud = require('wx-server-sdk')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
+const _ = db.command
 
 const COL = 'reminders'
 const TYPES = ['vaccine', 'deworm_in', 'deworm_out', 'recheck', 'medication', 'custom']
@@ -31,8 +32,13 @@ function nextDue(dueAt, repeat) {
   let ts = dueAt
   for (let i = 0; i < 60; i++) {
     const d = new Date(ts)
-    d.setMonth(d.getMonth() + months)
-    ts = d.getTime()
+    const day = d.getDate()
+    const target = new Date(d.getTime())
+    target.setDate(1)
+    target.setMonth(target.getMonth() + months)
+    const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate()
+    target.setDate(Math.min(day, lastDay))
+    ts = target.getTime()
     if (ts > Date.now()) return ts
   }
   return null
@@ -131,14 +137,25 @@ exports.main = async (event) => {
       if (exist.status !== 'pending' && exist.status !== 'expired') {
         return { ok: true, data: { id: event.id, status: exist.status } }
       }
-      await col.doc(event.id).update({ data: { status, updatedAt: Date.now() } })
+      const changed = await col
+        .where({ _openid: OPENID, _id: event.id, status: _.in(['pending', 'expired']) })
+        .update({ data: { status, updatedAt: Date.now() } })
+      if (!changed.stats || !changed.stats.updated) {
+        return { ok: true, data: { id: event.id, status } }
+      }
       // 周期提醒：完成后自动排下一次
       let next = null
       if (exist.repeat && exist.repeat !== 'none') {
         const dueAt = nextDue(exist.dueAt, exist.repeat)
         if (dueAt) {
+          const rootId = exist.rootId || exist._id
+          const previous = await col.where({ _openid: OPENID, rootId, dueAt }).limit(1).get()
+          if (previous.data.length) {
+            return { ok: true, data: { id: event.id, status, next: previous.data[0] } }
+          }
           const data = {
             _openid: OPENID,
+            rootId,
             petId: exist.petId || '',
             petName: exist.petName || '',
             type: exist.type || 'custom',

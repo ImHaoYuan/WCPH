@@ -34,6 +34,13 @@ App({
     if (adminCached) {
       this.globalData.adminInfo = adminCached
     }
+    if (!this.isLoggedIn()) {
+      wx.showToast({
+        title: '登录过期，请先登录',
+        icon: 'none',
+        duration: 2000
+      })
+    }
   },
 
   isLoggedIn() {

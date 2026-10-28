@@ -34,9 +34,9 @@
     <view class="c-title">全部评论（{{post.comments.length}}）</view>
     <view
       wx:for="{{post.comments}}"
-      wx:key="createdAt"
+      wx:key="index"
       class="c-item"
-      data-id="{{item.createdAt}}"
+      data-id="{{item.commentId || item.createdAt}}"
       data-mine="{{item.mine ? '1' : '0'}}"
       bindlongpress="onCommentLongPress"
     >

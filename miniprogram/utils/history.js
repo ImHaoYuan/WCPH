@@ -27,6 +27,9 @@ function record(post) {
       createdAt: post.createdAt,
       viewedAt: Date.now()
     }
+    Object.keys(map).forEach(id => {
+      if (ids.indexOf(id) < 0) delete map[id]
+    })
     wx.setStorageSync(KEY, ids)
     wx.setStorageSync(MAP_KEY, map)
   } catch (e) {}

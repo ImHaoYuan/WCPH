@@ -62,7 +62,9 @@ Page({
   // 按当前标签懒加载数据
   loadTabData() {
     const t = this.data.tab
-    if (t === 'accounts') return this.loadAccounts()
+    if (t === 'accounts') {
+      return Promise.all([this.loadAccounts(), this.loadAll()])
+    }
     if (t === 'posts' || t === 'reports') return this.loadAll()
     if (t === 'stats') return this.loadStats()
     return Promise.resolve()

@@ -32,6 +32,11 @@ Page({
       this.loadData()
     } else {
       this.setData({ pets: [], records: [], reminders: [], myPosts: [], favPosts: [], history: [] })
+      wx.showToast({
+        title: '登录过期，请先登录',
+        icon: 'none',
+        duration: 2000
+      })
     }
   },
 
@@ -410,6 +415,7 @@ Page({
       success: res => {
         if (!res.confirm) return
         getApp().logout()
+        getApp().logoutAdmin()
         this.setData({ logged: false, user: {}, pets: [], petIndex: 0, currentPet: {}, records: [] })
         wx.showToast({ title: '已退出登录', icon: 'none' })
       }

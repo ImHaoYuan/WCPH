@@ -78,7 +78,11 @@ Page({
       .getPet(id)
       .then(p => {
         wx.hideLoading()
-        if (!p) return
+        if (!p) {
+          wx.showToast({ title: '宠物信息已不存在', icon: 'none' })
+          setTimeout(() => wx.navigateBack(), 1200)
+          return
+        }
         // 历史数据若不在字典内（自定义分类/品种），回填为「其他」+ 自定义文本
         const knownCat = dict.CATEGORIES.indexOf(p.category) >= 0
         const category = knownCat ? p.category : (p.category ? '其他' : '')
@@ -112,6 +116,7 @@ Page({
       .catch(err => {
         wx.hideLoading()
         cloud.toastError(err)
+        setTimeout(() => wx.navigateBack(), 1200)
       })
   },
 

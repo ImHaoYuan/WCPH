@@ -3,6 +3,51 @@
   padding-bottom: 40rpx;
 }
 
+/* 未登录：仅显示居中登录入口 */
+.login-gate {
+  position: fixed;
+  left: 48rpx;
+  right: 48rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.login-gate-icon {
+  font-size: 72rpx;
+  line-height: 1;
+  margin-bottom: 28rpx;
+}
+
+.login-gate-title {
+  font-size: 38rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.login-gate-desc {
+  margin-top: 16rpx;
+  font-size: 26rpx;
+  color: var(--text-sub);
+}
+
+.login-gate-btn {
+  width: 280rpx;
+  margin-top: 48rpx;
+  border-radius: 999rpx;
+  background: var(--primary);
+  color: #fff;
+  font-size: 30rpx;
+  line-height: 2.6;
+}
+
+.login-gate-btn::after {
+  border: none;
+}
+
 /* 顶部 */
 .head {
   padding: 36rpx 40rpx 8rpx;
@@ -78,6 +123,31 @@
   border: 2rpx solid #FFD591;
   color: #C77800;
   font-size: 23rpx;
+}
+
+/* 大厅：推荐 / 最新 */
+.feed-tabs {
+  display: flex;
+  margin: 20rpx 32rpx 0;
+  padding: 6rpx;
+  border-radius: 16rpx;
+  background: #ECEFF5;
+}
+
+.feed-tab {
+  flex: 1;
+  padding: 12rpx 0;
+  border-radius: 12rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: var(--text-sub);
+}
+
+.feed-tab.active {
+  background: #fff;
+  color: var(--primary);
+  font-weight: 600;
+  box-shadow: 0 2rpx 8rpx rgba(31, 36, 48, 0.06);
 }
 
 /* 帖子卡片 */

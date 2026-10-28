@@ -31,13 +31,20 @@ async function upsertUser(openid, phone, extra) {
   const now = Date.now()
   if (exist.data.length) {
     const doc = exist.data[0]
-    await col.doc(doc._id).update({
-      data: Object.assign({ phone, updatedAt: now }, extra || {})
-    })
-    return Object.assign({}, doc, { phone, openid }, extra || {})
+    const patch = Object.assign({ updatedAt: now }, extra || {})
+    if (phone) patch.phone = phone
+    await col.doc(doc._id).update({ data: patch })
+    return Object.assign({}, doc, patch, { openid })
   }
   const data = Object.assign(
-    { _openid: openid, phone, createdAt: now, updatedAt: now },
+    {
+      _openid: openid,
+      phone: phone || '',
+      nickname: phone ? '微信用户' + phone.slice(-4) : ((extra && (extra.nickname || extra.username)) || '宠物用户'),
+      avatarUrl: '',
+      createdAt: now,
+      updatedAt: now
+    },
     extra || {}
   )
   const res = await col.add({ data })
@@ -89,10 +96,7 @@ exports.main = async (event) => {
       if (rec.expireAt < Date.now()) {
         return { ok: false, msg: '验证码已过期，请重新获取' }
       }
-      const user = await upsertUser(OPENID, phone, {
-        nickname: '微信用户' + phone.slice(-4),
-        avatarUrl: ''
-      })
+      const user = await upsertUser(OPENID, phone)
       await db.collection(CODES).doc(rec._id).remove()
       return { ok: true, data: { openid: OPENID, phone, nickname: user.nickname, avatarUrl: user.avatarUrl } }
     }
@@ -107,10 +111,7 @@ exports.main = async (event) => {
       if (!phone) {
         return { ok: false, msg: '未获取到手机号' }
       }
-      const user = await upsertUser(OPENID, phone, {
-        nickname: '微信用户' + phone.slice(-4),
-        avatarUrl: ''
-      })
+      const user = await upsertUser(OPENID, phone)
       return { ok: true, data: { openid: OPENID, phone, nickname: user.nickname, avatarUrl: user.avatarUrl } }
     }
 
@@ -151,6 +152,10 @@ exports.main = async (event) => {
       if (hashPwd(password, acc.salt || '') !== acc.passwordHash) {
         return { ok: false, msg: '密码错误' }
       }
+      await upsertUser(OPENID, '', {
+        accountId: acc._id,
+        username
+      })
       return {
         ok: true,
         data: {

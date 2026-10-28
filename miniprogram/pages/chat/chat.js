@@ -208,9 +208,7 @@ Page({
     Promise.all(
       paths.map((p, i) => {
         const ext = (p.match(/\.([a-zA-Z0-9]+)$/) || [])[1] || (type === 'video' ? 'mp4' : 'jpg')
-        return cloud
-          .uploadFile(p, `consult/${owner}/${Date.now()}-${type}-${i}.${ext}`)
-          .catch(() => p) // 上传失败降级为本地临时路径，保证演示可用
+        return cloud.uploadFile(p, `consult/${owner}/${Date.now()}-${type}-${i}.${ext}`)
       })
     )
       .then(urls => {
@@ -389,6 +387,10 @@ Page({
   },
 
   onOpenPicker() {
+    if (this.data.sending) {
+      wx.showToast({ title: 'AI 正在回复，请稍候再切换', icon: 'none' })
+      return
+    }
     if (!this.data.sessionId) {
       this.setData({ showSessionPicker: true })
       this.loadSessions()
@@ -452,6 +454,9 @@ Page({
     if (petIndex >= 0) {
       patch.petIndex = petIndex
       patch.currentPet = this.data.pets[petIndex]
+    } else {
+      patch.petIndex = -1
+      patch.currentPet = null
     }
     this.setData(patch)
   },
@@ -526,7 +531,9 @@ Page({
                 wx.hideLoading()
                 this.setData({ published: true })
                 if (this.data.sessionId && res2 && res2._id) {
-                  cloud.markRecordPublished(this.data.sessionId, res2._id).catch(() => {})
+                  cloud.markRecordPublished(this.data.sessionId, res2._id).catch(() => {
+                    wx.showToast({ title: '已发布，但记录状态同步失败', icon: 'none' })
+                  })
                 }
                 wx.showToast({ title: '已发布到广场', icon: 'success' })
               })
@@ -694,7 +701,9 @@ Page({
 
   // 保存当前会话：没有 id 时新建（云端自动命名 问诊记录N），有 id 时更新
   saveRecord() {
-    const msgs = this.data.messages
+    const sourceMessages = this.data.messages
+    const sessionId = this.data.sessionId
+    const msgs = sourceMessages
       .filter(m => m.role === 'user' || m.role === 'ai')
       .map(m => ({
         role: m.role,
@@ -715,19 +724,15 @@ Page({
 
     // 串行化，避免连续发送时重复创建记录
     this._saveChain = (this._saveChain || Promise.resolve()).then(() => {
-      if (this.data.sessionId) {
-        return cloud.updateRecord(this.data.sessionId, payload).catch(err =>
-          console.error('保存问诊记录失败', err)
-        )
-      }
-      return cloud
-        .addRecord(payload)
-        .then(res => {
-          if (res && res._id) {
-            this.setData({ sessionId: res._id, sessionTitle: res.title || '' })
-          }
-        })
-        .catch(err => console.error('保存问诊记录失败', err))
+      if (sessionId) return cloud.updateRecord(sessionId, payload)
+      return cloud.addRecord(payload).then(res => {
+        if (res && res._id && !this.data.sessionId && this.data.messages === sourceMessages) {
+          this.setData({ sessionId: res._id, sessionTitle: res.title || '' })
+        }
+      })
+    }).catch(err => {
+      console.error('保存问诊记录失败', err)
+      wx.showToast({ title: '对话暂未保存，请检查网络后重试', icon: 'none' })
     })
     return this._saveChain
   }

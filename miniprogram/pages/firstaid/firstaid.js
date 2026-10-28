@@ -57,10 +57,6 @@ Page({
   },
 
   onCallHospital() {
-    wx.showModal({
-      title: '紧急送医',
-      content: '急救处理后请尽快联系附近宠物医院，电话可在 AI 问诊红色预警中一键拨打。',
-      showCancel: false
-    })
+    wx.navigateTo({ url: '/pages/hospitals/hospitals' })
   }
 })

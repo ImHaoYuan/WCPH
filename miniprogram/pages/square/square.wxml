@@ -60,7 +60,14 @@
   </view>
 </template>
 
-<view class="page">
+<view wx:if="{{!logged}}" class="login-gate">
+  <view class="login-gate-icon">🔒</view>
+  <view class="login-gate-title">需要登录</view>
+  <view class="login-gate-desc">您还未登录，需要先登录后才能查看问诊广场</view>
+  <button class="login-gate-btn" bindtap="onLogin">去登录</button>
+</view>
+
+<view wx:else class="page">
   <view class="head">
     <view class="head-top">
       <view class="tabs">
@@ -73,6 +80,11 @@
         <view wx:if="{{unread}}" class="msg-badge">{{unread > 99 ? '99+' : unread}}</view>
       </view>
     </view>
+  </view>
+
+  <view wx:if="{{tab === 'hall'}}" class="feed-tabs">
+    <view class="feed-tab {{feed === 'recommend' ? 'active' : ''}}" data-feed="recommend" bindtap="onFeedTab">推荐</view>
+    <view class="feed-tab {{feed === 'latest' ? 'active' : ''}}" data-feed="latest" bindtap="onFeedTab">最新</view>
   </view>
 
   <!-- ===== 问诊大厅 ===== -->

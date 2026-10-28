@@ -110,6 +110,7 @@ const OFFICIAL_FALLBACK = [
 
 Page({
   data: {
+    logged: false,
     posts: [],
     loading: true,
     openId: '',
@@ -131,23 +132,57 @@ Page({
     noticeDismiss: false,
     // 三标签：问诊大厅 / 精选好帖 / 官方好帖
     tab: 'hall',
+    feed: 'recommend',
+    feedSeed: 0,
     featuredPosts: [],
     featuredLoading: false,
     officialPosts: [],
     officialLoading: false
   },
 
+  onTabItemTap() {
+    this.setData({ tab: 'hall', feed: 'recommend', menuId: '', showNotice: false })
+    wx.pageScrollTo({ scrollTop: 0, duration: 0 })
+    if (this.data.logged) this.refresh()
+  },
+
   onShow() {
+    const logged = getApp().isLoggedIn()
     this.setData({
+      logged,
       openId: getApp().globalData.openid || '',
       hiddenIds: this.loadHiddenIds(),
       favIds: this.loadFavIds(),
       menuId: '',
-      tab: 'hall'
+      showNotice: false
     })
-    this.refresh()
+    if (!logged) {
+      wx.showModal({
+        title: '登录过期',
+        content: '为了账户安全，请重新登录',
+        cancelText: '稍后',
+        confirmText: '立即登录',
+        success: res => {
+          if (res.confirm) this.onLogin()
+        }
+      })
+      return
+    }
+    if (!this.loaded) {
+      this.loaded = true
+      this.refresh()
+    } else if (getApp()._squareTargetPostId) {
+      this.scrollToTarget()
+    }
     this.loadUnread()
-    this.checkDailyNotice()
+    if (!this.noticeChecked) {
+      this.noticeChecked = true
+      this.checkDailyNotice()
+    }
+  },
+
+  onLogin() {
+    wx.navigateTo({ url: '/pages/login/login' })
   },
 
   // 每天第一次进入广场：弹公告（勾选“一天内不再提醒”则当天不再弹）
@@ -168,6 +203,10 @@ Page({
   onNoticeClose() {
     if (this.data.noticeDismiss) {
       try {
+        const info = wx.getStorageInfoSync()
+        ;(info.keys || []).forEach(key => {
+          if (key.indexOf('square_notice_') === 0) wx.removeStorageSync(key)
+        })
         wx.setStorageSync('square_notice_' + util.todayStr(), '1')
       } catch (e) {}
     }
@@ -188,18 +227,32 @@ Page({
   },
 
   onPullDownRefresh() {
+    if (!this.data.logged) {
+      wx.stopPullDownRefresh()
+      return
+    }
     this.loadUnread()
     this.reloadActive().then(() => wx.stopPullDownRefresh())
   },
 
   onReachBottom() {
-    if (this.data.tab !== 'hall') return
+    if (!this.data.logged || this.data.tab !== 'hall') return
     if (this.data.offline || this.data.loadingMore || !this.data.hasMore) return
     this.load(this.data.page + 1, true)
   },
 
+  onFeedTab(e) {
+    const feed = e.currentTarget.dataset.feed
+    if (feed === this.data.feed && this.data.loading) return
+    this.setData({ feed, menuId: '' })
+    wx.pageScrollTo({ scrollTop: 0, duration: 0 })
+    this.refresh()
+  },
+
   refresh() {
-    this.setData({ page: 0, hasMore: true })
+    const feedSeed = this.data.feed === 'recommend' ? Date.now() + Math.random() : 0
+    this._feedRequest = (this._feedRequest || 0) + 1
+    this.setData({ page: 0, hasMore: true, feedSeed, loadingMore: false })
     return this.load(0).then(() => this.scrollToTarget())
   },
 
@@ -212,7 +265,7 @@ Page({
     setTimeout(() => {
       const exists = this.data.posts.some(p => p._id === targetId)
       if (!exists) {
-        wx.showToast({ title: '该帖子不在当前列表（可能已下架）', icon: 'none' })
+        wx.navigateTo({ url: '/pages/postDetail/postDetail?id=' + targetId })
         return
       }
       wx.pageScrollTo({ selector: '#post-' + targetId, duration: 300 })
@@ -263,10 +316,14 @@ Page({
   },
 
   load(page, append) {
+    const requestId = this._feedRequest || 0
+    const feed = this.data.feed
+    const feedSeed = this.data.feedSeed
     this.setData(append ? { loadingMore: true } : { loading: true })
     return cloud
-      .squareList(page)
+      .squareList(page, feed, feedSeed)
       .then(res => {
+        if (requestId !== this._feedRequest || feed !== this.data.feed) return
         const raw = (res && res.list) || []
         const decorated = this.applyPosts(this.filterHidden(raw))
         this.setData({
@@ -279,6 +336,7 @@ Page({
         })
       })
       .catch(err => {
+        if (requestId !== this._feedRequest || feed !== this.data.feed) return
         // 云函数未部署/网络异常时静默降级为本地示例，不弹报错
         console.warn('[square] 云端不可用，使用本地示例数据', err && err.message)
         this.setData({
@@ -474,7 +532,7 @@ Page({
         kindEmoji: KIND_EMOJI[p.petKind] || '🐾',
         breedText: p.petBreed ? ' · ' + p.petBreed : '',
         timeText: util.formatDateTime(p.createdAt),
-        likeCount: (p.likes || []).length,
+        likeCount: p.likeCount != null ? p.likeCount : (p.likes || []).length,
         likedByMe: (p.likes || []).indexOf(openid) >= 0,
         commentCount: (p.comments || []).length,
         // 优先用服务端标记（不依赖本地登录态），旧版云函数未返回时按本地 openid 兜底

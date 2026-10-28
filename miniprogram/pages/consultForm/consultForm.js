@@ -105,9 +105,7 @@ Page({
           wx.showToast({ title: '图片可能模糊，建议重拍', icon: 'none' })
         }
         const ext = (f.tempFilePath.match(/\.([a-zA-Z0-9]+)$/) || [])[1] || 'jpg'
-        return cloud
-          .uploadFile(f.tempFilePath, `consult/${owner}/${Date.now()}-${i}.${ext}`)
-          .catch(() => f.tempFilePath) // 上传失败降级本地路径，保证演示可用
+        return cloud.uploadFile(f.tempFilePath, `consult/${owner}/${Date.now()}-${i}.${ext}`)
       })
     )
       .then(urls => {
@@ -169,6 +167,20 @@ Page({
     }
     if (!this.data.desc.trim()) {
       wx.showToast({ title: '请填写症状描述', icon: 'none' })
+      return
+    }
+    if (!wx.getStorageSync('disclaimer_agreed_v1')) {
+      wx.showModal({
+        title: 'AI 问诊免责声明',
+        content: 'AI 助手仅提供初步健康评估与护理建议，不构成诊断、不开具处方，不能替代执业兽医的现场诊疗。急症请立即前往宠物医院。继续使用即表示您已了解并同意。',
+        confirmText: '同意',
+        cancelText: '不同意',
+        success: res => {
+          if (!res.confirm) return
+          wx.setStorageSync('disclaimer_agreed_v1', true)
+          this.onSubmit()
+        }
+      })
       return
     }
 
@@ -233,7 +245,10 @@ Page({
       .then(res => {
         if (res && res._id) this.setData({ savedId: res._id })
       })
-      .catch(err => console.error('保存问诊记录失败', err && err.message))
+      .catch(err => {
+        console.error('保存问诊记录失败', err && err.message)
+        wx.showToast({ title: '报告已生成但记录保存失败', icon: 'none' })
+      })
   },
 
   resetForm() {
