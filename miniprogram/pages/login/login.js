@@ -10,10 +10,13 @@ Page({
     code: '',
     username: '',
     password: '',
+    showPwd: false,
     remember: false,
+    agreed: false,
     countdown: 0,
     codeText: '获取验证码',
-    saving: false
+    saving: false,
+    wxSaving: false
   },
 
   _timer: null,
@@ -41,12 +44,38 @@ Page({
     this.setData({ password: e.detail.value })
   },
 
+  togglePwd() {
+    this.setData({ showPwd: !this.data.showPwd })
+  },
+
   onPhoneInput(e) {
     this.setData({ phone: e.detail.value })
   },
 
   onCodeInput(e) {
     this.setData({ code: e.detail.value })
+  },
+
+  onToggleAgreement() {
+    this.setData({ agreed: !this.data.agreed })
+  },
+
+  showAgreementToast() {
+    wx.showToast({
+      title: '先阅读并同意《用户协议》与《隐私政策》',
+      icon: 'none',
+      duration: 2000
+    })
+  },
+
+  ensureAgreement() {
+    if (this.data.agreed) return true
+    this.showAgreementToast()
+    return false
+  },
+
+  onWxLoginTap() {
+    if (!this.data.agreed) this.showAgreementToast()
   },
 
   toggleRemember() {
@@ -116,16 +145,8 @@ Page({
     }, 800)
   },
 
-  // 演示登录：跳过验证码，本地写入登录态，便于预览登录后的页面
-  demoLogin() {
-    this.finishLogin({
-      openid: 'demo_' + Date.now(),
-      nickname: '演示用户',
-      phone: '13800000000'
-    })
-  },
-
   doLogin() {
+    if (!this.ensureAgreement()) return
     const phone = this.data.phone.trim()
     const code = this.data.code.trim()
     if (!util.isValidPhone(phone)) {
@@ -139,8 +160,29 @@ Page({
     this.setData({ saving: true })
     cloud
       .smsLogin(phone, code)
-      .then(userInfo => {
+      .then(result => {
         this.setData({ saving: false })
+        if (result && result.needSetPassword) {
+          wx.showModal({
+            title: '提示',
+            content: '该手机号是第一次注册，请先设置密码',
+            showCancel: false,
+            confirmText: '确定',
+            success: res => {
+              if (res.confirm) {
+                // 等弹窗完全关闭后再跳转，避免弹窗与页面过渡动画叠加导致渲染异常
+                setTimeout(() => {
+                  wx.navigateTo({
+                    url: '/pages/setPassword/setPassword?mode=register&phone=' + phone + '&code=' + code
+                  })
+                }, 300)
+              }
+            }
+          })
+          return
+        }
+        const userInfo = result && result.userInfo
+        if (!userInfo || !userInfo.openid) throw new Error('登录信息不完整，请重试')
         this.finishLogin(userInfo)
       })
       .catch(err => {
@@ -151,10 +193,11 @@ Page({
 
   // 账号密码登录（账号由管理员在后台创建）
   doAccountLogin() {
+    if (!this.ensureAgreement()) return
     const username = this.data.username.trim()
     const password = this.data.password
-    if (!username) {
-      wx.showToast({ title: '请输入账号', icon: 'none' })
+    if (!util.isValidPhone(username)) {
+      wx.showToast({ title: '请输入正确的手机号', icon: 'none' })
       return
     }
     if (!password) {
@@ -174,25 +217,42 @@ Page({
       })
   },
 
+  onForgotPassword() {
+    wx.navigateTo({ url: '/pages/forgotPassword/forgotPassword' })
+  },
+
   // 管理员登录入口
   onAdminLogin() {
     wx.navigateTo({ url: '/pages/adminLogin/adminLogin' })
   },
 
+  // 微信原生手机号授权：成功后仅把 cloudID 交给云函数解析并创建/更新用户
   onGetPhone(e) {
-    if (!e.detail || !e.detail.cloudID) {
-      wx.showToast({ title: '已取消授权', icon: 'none' })
+    if (!this.ensureAgreement() || this.data.wxSaving) return
+    const detail = (e && e.detail) || {}
+    if (!detail.cloudID) {
+      const errMsg = String(detail.errMsg || '')
+      const canceled = /cancel|deny|auth/i.test(errMsg)
+      wx.showToast({
+        title: canceled ? '已取消授权' : '微信授权失败，请重试',
+        icon: 'none',
+        duration: 2000
+      })
       return
     }
-    wx.showLoading({ title: '登录中' })
+    this.setData({ wxSaving: true })
+    wx.showLoading({ title: '微信登录中', mask: true })
     cloud
-      .phoneLogin(e.detail.cloudID)
+      .phoneLogin(detail.cloudID)
       .then(userInfo => {
+        if (!userInfo || !userInfo.openid) throw new Error('微信登录信息不完整，请重试')
         wx.hideLoading()
+        this.setData({ wxSaving: false })
         this.finishLogin(userInfo)
       })
       .catch(err => {
         wx.hideLoading()
+        this.setData({ wxSaving: false })
         cloud.toastError(err)
       })
   }

@@ -13,7 +13,7 @@
   </view>
 
   <!-- 我的宠物 -->
-  <view class="pet-section card">
+  <view class="pet-section card" bindtap="onLoginGate">
     <view class="sec-head">
       <text class="sec-title">我的宠物</text>
     </view>
@@ -60,6 +60,20 @@
     <view wx:else class="empty" bindtap="onAddPet">还没有添加宠物，点击这里去添加吧～</view>
   </view>
 
+  <!-- 收藏点赞与浏览记录 -->
+  <view class="activity-links">
+    <view class="activity-link card" bindtap="onLikedPostsTap">
+      <view class="activity-icon liked">♥</view>
+      <view class="activity-title">我的点赞</view>
+      <view class="activity-sub">记录赞过的帖子</view>
+    </view>
+    <view class="activity-link card" bindtap="onHistoryTap">
+      <view class="activity-icon">🕘</view>
+      <view class="activity-title">历史浏览记录</view>
+      <view class="activity-sub">最近看过的帖子</view>
+    </view>
+  </view>
+
   <!-- 附近宠物医院 -->
   <view class="hosp-entry card" bindtap="onHospitals">
     <view class="he-icon">🏥</view>
@@ -71,7 +85,7 @@
   </view>
 
   <!-- 健康计划 -->
-  <view class="section">
+  <view class="section" bindtap="onLoginGate">
     <view class="sec-head">
       <text class="sec-title">健康计划</text>
       <text wx:if="{{logged}}" class="sec-more" bindtap="onRemindersTap">全部 ›</text>
@@ -92,7 +106,7 @@
   </view>
 
   <!-- 问诊记录：仅展示最新一条，点击“全部”进入完整列表 -->
-  <view class="section">
+  <view class="section" bindtap="onLoginGate">
     <view class="sec-head">
       <text class="sec-title">问诊记录</text>
       <text wx:if="{{logged && records.length}}" class="sec-more" bindtap="onRecordsListTap">全部 ›</text>
@@ -117,7 +131,7 @@
   </view>
 
   <!-- 我的发布：仅展示最新一条，点击“全部”进入完整列表 -->
-  <view class="section">
+  <view class="section" bindtap="onLoginGate">
     <view class="sec-head">
       <text class="sec-title">我的发布</text>
       <text wx:if="{{logged && myPosts.length}}" class="sec-more" bindtap="onMyPostsListTap">全部 ›</text>
@@ -139,29 +153,8 @@
     <view wx:else class="empty card">还没有发布过内容，去广场发布吧</view>
   </view>
 
-  <!-- 历史浏览记录：仅展示最新一条，点击“全部”进入完整列表 -->
-  <view class="section">
-    <view class="sec-head">
-      <text class="sec-title">历史浏览记录</text>
-      <text wx:if="{{logged && history.length}}" class="sec-more" bindtap="onHistoryTap">全部 ›</text>
-    </view>
-
-    <view wx:if="{{!logged}}" class="empty card">登录后查看浏览记录</view>
-    <block wx:elif="{{history.length}}">
-      <view class="rec-card card" data-id="{{history[0]._id}}" bindtap="onHistoryItemTap">
-        <view class="r-avatar">{{history[0].kindEmoji}}</view>
-        <view class="r-info">
-          <view class="r-title ellipsis">{{history[0].title}}</view>
-          <view class="r-desc">{{history[0].petKind}}{{history[0].petBreed ? ' · ' + history[0].petBreed : ''}} · 浏览于 {{history[0].timeText}}</view>
-        </view>
-        <text class="r-arrow">›</text>
-      </view>
-    </block>
-    <view wx:else class="empty card">暂无浏览记录，去广场逛逛吧</view>
-  </view>
-
   <!-- 我的收藏 -->
-  <view class="section">
+  <view class="section" bindtap="onLoginGate">
     <view class="sec-head">
       <text class="sec-title">我的收藏</text>
     </view>

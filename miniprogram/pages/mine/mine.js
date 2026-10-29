@@ -10,6 +10,22 @@ const KIND_EMOJI = { 猫: '🐱', 狗: '🐶', 兔: '🐰', 鸟: '🐦', 仓鼠:
 const FAV_KEY = 'square_favs_v1'
 const FAV_POSTS_KEY = 'square_fav_posts_v1'
 
+// 与问诊广场、AI 问诊首页保持一致的未登录确认弹窗
+function ensureLogin() {
+  if (getApp().isLoggedIn()) return true
+  wx.showModal({
+    title: '登录过期',
+    content: '为了账户安全，请重新登录',
+    cancelText: '稍后',
+    confirmText: '立即登录',
+    confirmColor: '#5B7CFA',
+    success: res => {
+      if (res.confirm) wx.navigateTo({ url: '/pages/login/login' })
+    }
+  })
+  return false
+}
+
 Page({
   data: {
     logged: false,
@@ -235,11 +251,12 @@ Page({
     this.setData({ favPosts })
   },
 
+  onLoginGate() {
+    if (!this.data.logged) ensureLogin()
+  },
+
   onUserTap() {
-    if (!this.data.logged) {
-      wx.navigateTo({ url: '/pages/login/login' })
-      return
-    }
+    if (!ensureLogin()) return
     // 已登录：编辑头像/昵称
     wx.showActionSheet({
       itemList: ['修改头像', '修改昵称'],
@@ -310,7 +327,7 @@ Page({
   },
 
   onAddPet() {
-    if (!getApp().requireLogin()) return
+    if (!ensureLogin()) return
     wx.navigateTo({ url: '/pages/addPet/addPet' })
   },
 
@@ -329,6 +346,11 @@ Page({
     this.setData({
       petIndex,
       currentPet: this.data.pets[petIndex]
+    })
+    wx.showToast({
+      title: '切换宠物成功',
+      icon: 'none',
+      duration: 2000
     })
   },
 
@@ -352,8 +374,14 @@ Page({
     wx.navigateTo({ url: '/pages/myPosts/myPosts' })
   },
 
+  onLikedPostsTap() {
+    if (!ensureLogin()) return
+    wx.navigateTo({ url: '/pages/likedPosts/likedPosts' })
+  },
+
   // 全部历史浏览记录
   onHistoryTap() {
+    if (!ensureLogin()) return
     wx.navigateTo({ url: '/pages/history/history' })
   },
 
@@ -363,7 +391,7 @@ Page({
   },
 
   onRemindersTap() {
-    if (!getApp().requireLogin()) return
+    if (!ensureLogin()) return
     wx.navigateTo({ url: '/pages/reminders/reminders' })
   },
 
@@ -404,6 +432,7 @@ Page({
   },
 
   onHospitals() {
+    if (!ensureLogin()) return
     wx.navigateTo({ url: '/pages/hospitals/hospitals' })
   },
 

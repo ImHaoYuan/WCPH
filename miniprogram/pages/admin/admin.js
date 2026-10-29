@@ -12,6 +12,8 @@ Page({
     stats: { users: 0, pets: 0, records: 0, posts: 0 },
     recentUsers: [],
     newAccount: { username: '', password: '', nickname: '' },
+    showAccPwd: false,
+    accPwdStrength: '',
     loading: true,
     loadingAccounts: false,
     loadingStats: false,
@@ -137,7 +139,18 @@ Page({
 
   onAccountInput(e) {
     const key = e.currentTarget.dataset.key
-    this.setData({ ['newAccount.' + key]: e.detail.value })
+    const value = e.detail.value
+    const patch = { ['newAccount.' + key]: value }
+    if (key === 'password') {
+      // 达到基础规则（8-14位、含英文和数字）后评估强度：含特殊字符为可靠，否则为一般
+      const base = value.length >= 8 && value.length <= 14 && /^(?=.*[A-Za-z])(?=.*\d)\S+$/.test(value)
+      patch.accPwdStrength = base ? (/[^A-Za-z0-9]/.test(value) ? 'strong' : 'medium') : ''
+    }
+    this.setData(patch)
+  },
+
+  toggleAccPwd() {
+    this.setData({ showAccPwd: !this.data.showAccPwd })
   },
 
   onAddAccount() {
@@ -147,8 +160,8 @@ Page({
       wx.showToast({ title: '账号需为3-20位字母/数字/下划线', icon: 'none' })
       return
     }
-    if (!a.password || a.password.length < 6) {
-      wx.showToast({ title: '密码至少6位', icon: 'none' })
+    if (!(a.password.length >= 8 && a.password.length <= 14 && /^(?=.*[A-Za-z])(?=.*\d)\S+$/.test(a.password))) {
+      wx.showToast({ title: '密码需为8-14位，且同时包含英文和数字', icon: 'none' })
       return
     }
     this.setData({ addingAccount: true })

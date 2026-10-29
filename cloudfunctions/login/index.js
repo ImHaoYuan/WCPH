@@ -16,6 +16,29 @@ function hashPwd(password, salt) {
   return crypto.createHash('sha256').update(salt + '|' + password).digest('hex')
 }
 
+function validPassword(password) {
+  return (
+    password.length >= 8 &&
+    password.length <= 14 &&
+    /^(?=.*[A-Za-z])(?=.*\d)\S+$/.test(password)
+  )
+}
+
+async function checkSmsCode(openid, phone, code) {
+  if (!/^1[3-9]\d{9}$/.test(phone)) return { ok: false, msg: '手机号格式不正确' }
+  if (!/^\d{6}$/.test(code)) return { ok: false, msg: '请输入6位验证码' }
+  const exist = await db
+    .collection(CODES)
+    .where({ _openid: openid, phone })
+    .limit(1)
+    .get()
+  if (!exist.data.length) return { ok: false, msg: '请先获取验证码' }
+  const rec = exist.data[0]
+  if (rec.code !== code) return { ok: false, msg: '验证码错误' }
+  if (rec.expireAt < Date.now()) return { ok: false, msg: '验证码已过期，请重新获取' }
+  return { ok: true, rec }
+}
+
 async function ensureCollection(name) {
   try {
     await db.createCollection(name)
@@ -76,43 +99,153 @@ exports.main = async (event) => {
     }
 
     if (action === 'smsLogin') {
-      const phone = String(event.phone || '')
-      const code = String(event.code || '')
+      const phone = String(event.phone || '').trim()
+      const code = String(event.code || '').trim()
+      const checked = await checkSmsCode(OPENID, phone, code)
+      if (!checked.ok) return checked
+      await ensureCollection(ACCOUNTS)
+      const accountRes = await db.collection(ACCOUNTS).where({ username: phone }).limit(1).get()
+      // 首次使用该手机号：保留验证码，待密码设置成功后再完成登录并消费验证码
+      if (!accountRes.data.length) {
+        return { ok: true, data: { needSetPassword: true, phone } }
+      }
+      const acc = accountRes.data[0]
+      const user = await upsertUser(OPENID, phone, {
+        accountId: acc._id,
+        username: phone,
+        loginType: 'sms'
+      })
+      await db.collection(CODES).doc(checked.rec._id).remove()
+      return {
+        ok: true,
+        data: {
+          needSetPassword: false,
+          userInfo: {
+            openid: OPENID,
+            phone,
+            accountId: acc._id,
+            username: phone,
+            nickname: user.nickname,
+            avatarUrl: user.avatarUrl
+          }
+        }
+      }
+    }
+
+    // 检查手机号是否被注册/使用过（忘记密码页提前提示）
+    if (action === 'checkPhoneRegistered') {
+      const phone = String(event.phone || '').trim()
       if (!/^1[3-9]\d{9}$/.test(phone)) {
         return { ok: false, msg: '手机号格式不正确' }
       }
-      const exist = await db
-        .collection(CODES)
-        .where({ _openid: OPENID, phone })
-        .limit(1)
-        .get()
-      if (!exist.data.length) {
-        return { ok: false, msg: '请先获取验证码' }
-      }
-      const rec = exist.data[0]
-      if (rec.code !== code) {
-        return { ok: false, msg: '验证码错误' }
-      }
-      if (rec.expireAt < Date.now()) {
-        return { ok: false, msg: '验证码已过期，请重新获取' }
-      }
-      const user = await upsertUser(OPENID, phone)
-      await db.collection(CODES).doc(rec._id).remove()
-      return { ok: true, data: { openid: OPENID, phone, nickname: user.nickname, avatarUrl: user.avatarUrl } }
+      await ensureCollection(ACCOUNTS)
+      const accRes = await db.collection(ACCOUNTS).where({ username: phone }).limit(1).get()
+      if (accRes.data.length) return { ok: true, data: { registered: true } }
+      await ensureCollection(USERS)
+      const userRes = await db.collection(USERS).where({ phone }).limit(1).get()
+      return { ok: true, data: { registered: userRes.data.length > 0 } }
     }
 
+    // 忘记密码第一步：只校验验证码，不登录、不消费验证码
+    if (action === 'verifyCode') {
+      const phone = String(event.phone || '').trim()
+      const code = String(event.code || '').trim()
+      const checked = await checkSmsCode(OPENID, phone, code)
+      if (!checked.ok) return checked
+      if (event.purpose === 'reset') {
+        await ensureCollection(ACCOUNTS)
+        const accountRes = await db.collection(ACCOUNTS).where({ username: phone }).limit(1).get()
+        if (!accountRes.data.length) {
+          return { ok: false, msg: '该手机号尚未设置密码，请使用验证码登录' }
+        }
+      }
+      return { ok: true, data: { valid: true, phone } }
+    }
+
+    // 首次设置密码 / 忘记密码后重置密码
+    if (action === 'setPassword') {
+      const phone = String(event.phone || '').trim()
+      const code = String(event.code || '').trim()
+      const password = String(event.password || '')
+      const mode = event.mode === 'reset' ? 'reset' : 'register'
+      if (!validPassword(password)) {
+        return { ok: false, msg: '密码需为8-14位，且同时包含英文和数字' }
+      }
+      const checked = await checkSmsCode(OPENID, phone, code)
+      if (!checked.ok) return checked
+      await ensureCollection(ACCOUNTS)
+      const col = db.collection(ACCOUNTS)
+      const accountRes = await col.where({ username: phone }).limit(1).get()
+      const existing = accountRes.data[0]
+      if (mode === 'register' && existing) {
+        return { ok: false, msg: '该手机号已设置密码，请直接登录' }
+      }
+      if (mode === 'reset' && !existing) {
+        return { ok: false, msg: '该手机号尚未设置密码，请使用验证码登录' }
+      }
+      const salt = crypto.randomBytes(8).toString('hex')
+      const passwordHash = hashPwd(password, salt)
+      let accountId = existing && existing._id
+      if (existing) {
+        await col.doc(accountId).update({
+          data: { passwordHash, salt, updatedAt: Date.now() }
+        })
+      } else {
+        const res = await col.add({
+          data: {
+            _openid: OPENID,
+            username: phone,
+            phone,
+            passwordHash,
+            salt,
+            nickname: '微信用户' + phone.slice(-4),
+            createdAt: Date.now()
+          }
+        })
+        accountId = res._id
+      }
+      await db.collection(CODES).doc(checked.rec._id).remove()
+      const user = await upsertUser(OPENID, phone, {
+        accountId,
+        username: phone,
+        loginType: mode === 'reset' ? 'passwordReset' : 'sms'
+      })
+      return {
+        ok: true,
+        data: {
+          userInfo: {
+            openid: OPENID,
+            phone,
+            accountId,
+            username: phone,
+            nickname: user.nickname,
+            avatarUrl: user.avatarUrl
+          }
+        }
+      }
+    }
+
+    // 微信手机号快速授权：cloudID 只能在云函数中解析，前端不接触解密密钥
     if (action === 'phoneLogin') {
-      let phone = ''
-      if (event.cloudID) {
-        const res = await cloud.getOpenData({ list: [event.cloudID] })
-        const info = res.list && res.list[0] && res.list[0].data
-        phone = (info && info.phoneNumber) || ''
+      if (!OPENID) return { ok: false, msg: '未获取到微信身份，请重试' }
+      if (!event.cloudID || typeof event.cloudID !== 'string') {
+        return { ok: false, msg: '微信授权凭证无效，请重新授权' }
       }
-      if (!phone) {
-        return { ok: false, msg: '未获取到手机号' }
+      const res = await cloud.getOpenData({ list: [event.cloudID] })
+      const info = res.list && res.list[0] && res.list[0].data
+      const phone = (info && info.phoneNumber) || ''
+      if (!phone) return { ok: false, msg: '未获取到微信绑定手机号，请改用验证码登录' }
+      const user = await upsertUser(OPENID, phone, { loginType: 'wechat' })
+      return {
+        ok: true,
+        data: {
+          openid: OPENID,
+          phone,
+          nickname: user.nickname,
+          avatarUrl: user.avatarUrl,
+          loginType: 'wechat'
+        }
       }
-      const user = await upsertUser(OPENID, phone)
-      return { ok: true, data: { openid: OPENID, phone, nickname: user.nickname, avatarUrl: user.avatarUrl } }
     }
 
     // 更新头像/昵称
@@ -146,15 +279,22 @@ exports.main = async (event) => {
         .limit(1)
         .get()
       if (!exist.data.length) {
-        return { ok: false, msg: '账号不存在，请联系管理员添加' }
+        return {
+          ok: false,
+          msg: /^1[3-9]\d{9}$/.test(username)
+            ? '该手机号尚未设置密码，请先使用验证码登录'
+            : '账号不存在，请联系管理员添加'
+        }
       }
       const acc = exist.data[0]
       if (hashPwd(password, acc.salt || '') !== acc.passwordHash) {
         return { ok: false, msg: '密码错误' }
       }
-      await upsertUser(OPENID, '', {
+      const phone = /^1[3-9]\d{9}$/.test(username) ? username : ''
+      const user = await upsertUser(OPENID, phone, {
         accountId: acc._id,
-        username
+        username,
+        loginType: 'account'
       })
       return {
         ok: true,
@@ -162,8 +302,9 @@ exports.main = async (event) => {
           openid: OPENID,
           accountId: acc._id,
           username,
-          nickname: acc.nickname || username,
-          phone: '',
+          nickname: user.nickname || acc.nickname || username,
+          avatarUrl: user.avatarUrl || '',
+          phone: user.phone || phone,
           role: 'user'
         }
       }

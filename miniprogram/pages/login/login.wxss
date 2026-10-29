@@ -139,18 +139,22 @@
   margin-top: 48rpx;
 }
 
-.demo-login {
-  text-align: center;
-  font-size: 26rpx;
-  color: var(--primary);
-  margin-top: 28rpx;
+.agreement {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 32rpx;
 }
 
-.agreement {
-  text-align: center;
+.agreement-checkbox {
+  flex: 0 0 36rpx;
+  margin-right: 12rpx;
+}
+
+.agreement-text {
+  color: var(--text-sub);
   font-size: 22rpx;
-  color: var(--text-light);
-  margin-top: 32rpx;
+  line-height: 1.5;
 }
 
 /* 登录方式切换 */
@@ -175,11 +179,24 @@
   font-weight: 600;
 }
 
-.account-tip {
-  padding: 20rpx 0 16rpx;
-  font-size: 24rpx;
-  color: var(--text-light);
-  text-align: center;
+.account-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 4rpx 16rpx;
+}
+
+.account-action {
+  color: var(--primary);
+  font-size: 26rpx;
+}
+
+.account-hint {
+  color: #999;
+  font-size: 20rpx;
+  text-align: right;
+  flex: 1;
+  margin-left: 16rpx;
 }
 
 .admin-login {
