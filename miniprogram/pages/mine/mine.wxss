@@ -255,6 +255,41 @@
   margin-left: 12rpx;
 }
 
+/* 点赞与浏览记录入口 */
+.activity-links {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 24rpx;
+}
+
+.activity-link {
+  flex: 1;
+  min-width: 0;
+  padding: 26rpx 24rpx;
+}
+
+.activity-icon {
+  font-size: 40rpx;
+  line-height: 1;
+}
+
+.activity-icon.liked {
+  color: #E5484D;
+}
+
+.activity-title {
+  margin-top: 16rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.activity-sub {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: var(--text-sub);
+}
+
 /* 健康计划 */
 .rem-card {
   display: flex;

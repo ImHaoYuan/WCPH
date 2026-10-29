@@ -4,6 +4,7 @@ Page({
   data: {
     username: '',
     password: '',
+    showPwd: false,
     saving: false
   },
 
@@ -13,6 +14,10 @@ Page({
 
   onPasswordInput(e) {
     this.setData({ password: e.detail.value })
+  },
+
+  togglePwd() {
+    this.setData({ showPwd: !this.data.showPwd })
   },
 
   doLogin() {

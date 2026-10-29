@@ -53,8 +53,12 @@ exports.main = async (event) => {
       if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
         return { ok: false, msg: '账号需为3-20位字母/数字/下划线' }
       }
-      if (password.length < 6) {
-        return { ok: false, msg: '密码至少6位' }
+      if (
+        password.length < 8 ||
+        password.length > 14 ||
+        !/^(?=.*[A-Za-z])(?=.*\d)\S+$/.test(password)
+      ) {
+        return { ok: false, msg: '密码需为8-14位，且同时包含英文和数字' }
       }
       await ensureCollection(ACCOUNTS)
       const exist = await db

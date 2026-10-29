@@ -37,8 +37,12 @@ module.exports = {
 
   // ===== 登录 =====
   smsLogin: (phone, code) => call('login', { action: 'smsLogin', phone, code }),
+  verifyCode: (phone, code, purpose) => call('login', { action: 'verifyCode', phone, code, purpose }),
+  setPassword: (phone, code, password, mode) =>
+    call('login', { action: 'setPassword', phone, code, password, mode }),
   phoneLogin: cloudID => call('login', { action: 'phoneLogin', cloudID }),
   sendCode: phone => call('login', { action: 'sendCode', phone }),
+  checkPhoneRegistered: phone => call('login', { action: 'checkPhoneRegistered', phone }),
   updateProfile: (nickname, avatarUrl) =>
     call('login', { action: 'updateProfile', nickname, avatarUrl }),
   // 账号密码登录（账号由管理员创建）
@@ -85,6 +89,7 @@ module.exports = {
   squareGet: id => call('square', { action: 'get', id }),
   squareMine: () => call('square', { action: 'mylist' }),
   squareFavlist: ids => call('square', { action: 'favlist', ids }),
+  squareLiked: () => call('square', { action: 'likedList' }),
   squareLike: id => call('square', { action: 'like', id }),
   squareComment: (id, content) => call('square', { action: 'comment', id, content }),
   squareDeleteComment: (id, commentId) => call('square', { action: 'deleteComment', id, commentId }),

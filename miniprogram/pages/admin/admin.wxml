@@ -22,8 +22,11 @@
         </view>
         <view class="acc-field">
           <text class="acc-label">密码</text>
-          <input class="acc-input" password placeholder="至少6位" placeholder-class="ph" value="{{newAccount.password}}" data-key="password" bindinput="onAccountInput" />
+          <input class="acc-input" password="{{!showAccPwd}}" maxlength="14" placeholder="8-14位，含英文和数字" placeholder-class="ph" value="{{newAccount.password}}" data-key="password" bindinput="onAccountInput" />
+          <text class="pwd-eye" bindtap="toggleAccPwd">{{showAccPwd ? '🙈' : '👁'}}</text>
         </view>
+        <view wx:if="{{accPwdStrength === 'medium'}}" class="pwd-strength warn">⚠️ 该密码安全性一般</view>
+        <view wx:if="{{accPwdStrength === 'strong'}}" class="pwd-strength good">✅ 该密码的安全性很可靠！</view>
         <view class="acc-field">
           <text class="acc-label">昵称</text>
           <input class="acc-input" placeholder="选填" placeholder-class="ph" value="{{newAccount.nickname}}" data-key="nickname" bindinput="onAccountInput" />

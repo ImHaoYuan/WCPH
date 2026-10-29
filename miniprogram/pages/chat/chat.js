@@ -600,6 +600,11 @@ Page({
         scrollTo: 'bottom-anchor'
       })
     }
+    wx.showToast({
+      title: '切换宠物成功',
+      icon: 'none',
+      duration: 2000
+    })
   },
 
   onAddPet() {

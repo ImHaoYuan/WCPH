@@ -397,6 +397,16 @@ exports.main = async (event) => {
       return { ok: true, data: res.data }
     }
 
+    // 我的点赞：按当前账号读取点赞过的帖子，包括官方好帖
+    if (action === 'likedList') {
+      const res = await col
+        .where({ likes: OPENID })
+        .orderBy('createdAt', 'desc')
+        .limit(100)
+        .get()
+      return { ok: true, data: res.data }
+    }
+
     // 我的收藏：按前端传来的 id 列表批量取帖（保持收藏顺序）
     if (action === 'favlist') {
       const ids = Array.isArray(event.ids)
